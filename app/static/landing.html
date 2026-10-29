@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TR-01 Field Interpreter — Real-Time Simultaneous Language Translator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #F4F3EF;
+      --paper-card: #FAF9F6;
+      --chrome: #D8D5CC;
+      --halftone-bg: #E7E4DC;
+      --ink: #141413;
+      --orange: #FF4F00;
+      --muted: #8C8A84;
+      --font-speech: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-speech);
+    }
+
+    .font-speech { font-family: var(--font-speech); }
+    .font-mono { font-family: var(--font-mono); }
+
+    /* Retro OS Halftone Lower Canvas (matching the textured lower half of the Mac inspiration) */
+    .halftone-surface {
+      background-color: var(--halftone-bg);
+      background-image: radial-gradient(#C4C0B5 1.15px, transparent 1.15px);
+      background-size: 6px 6px;
+    }
+
+    /* Neo-Brutalist Retro OS Windows & Tactile Buttons */
+    .retro-window {
+      background: var(--paper-card);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .retro-window:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0 var(--ink);
+    }
+
+    .retro-window-static {
+      background: var(--paper-card);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+
+    .window-titlebar {
+      background: var(--chrome);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .win-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 9999px;
+      border: 1.8px solid var(--ink);
+      background: var(--paper-card);
+      display: inline-block;
+      transition: background-color 0.14s ease;
+    }
+
+    .retro-window:hover .win-dot:first-child {
+      background: var(--orange);
+    }
+
+    .btn-retro-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      background: var(--orange);
+      color: #FFFFFF;
+      border: 2px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.12s ease;
+      cursor: pointer;
+    }
+
+    .btn-retro-primary:hover {
+      filter: brightness(1.05);
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0 var(--ink);
+    }
+
+    .btn-retro-primary:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    .btn-retro-neutral {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: var(--chrome);
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.14s ease, color 0.14s ease;
+      cursor: pointer;
+    }
+
+    .btn-retro-neutral:hover {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .btn-retro-neutral:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    /* Overlapping Quick Links Bar */
+    .quick-links-grid {
+      background: var(--chrome);
+      border: 2px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .quick-link-cell {
+      transition: background-color 0.14s ease, color 0.14s ease;
+    }
+
+    .quick-link-cell:hover {
+      background-color: var(--orange);
+      color: #FFFFFF;
+    }
+
+    .quick-link-cell:hover .ql-arrow {
+      transform: translate(2px, -2px);
+    }
+
+    .ql-arrow {
+      transition: transform 0.14s ease;
+    }
+
+    /* Mascot Floating & Acoustic Bubble Animations */
+    @keyframes floatBubble {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    @keyframes blinkEye {
+      0%, 92%, 100% { transform: scaleY(1); }
+      96% { transform: scaleY(0.12); }
+    }
+
+    @keyframes pulseBeacon {
+      0% { box-shadow: 0 0 0 0 rgba(255, 79, 0, 0.65); }
+      70% { box-shadow: 0 0 0 8px rgba(255, 79, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 79, 0, 0); }
+    }
+
+    .bubble-float-1 { animation: floatBubble 2.8s ease-in-out infinite; }
+    .bubble-float-2 { animation: floatBubble 3.4s ease-in-out 0.6s infinite; }
+    .bubble-float-3 { animation: floatBubble 2.5s ease-in-out 1.1s infinite; }
+    .mascot-eye { transform-origin: 250px 158px; animation: blinkEye 4.8s infinite; }
+    .orange-beacon { animation: pulseBeacon 1.6s infinite; }
+
+    /* Live Typewriter Cursor */
+    .cursor-orange::after {
+      content: "▋";
+      color: var(--orange);
+      margin-left: 3px;
+      animation: blinkCur 0.85s steps(2, start) infinite;
+    }
+
+    @keyframes blinkCur {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Language Pill Selector in Live Sandbox */
+    .sandbox-lang-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border: 1.5px solid var(--ink);
+      background: var(--paper);
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .sandbox-lang-pill.active {
+      background: var(--orange);
+      color: #FFFFFF;
+      box-shadow: 2px 2px 0 var(--ink);
+      transform: translate(-1px, -1px);
+    }
+  </style>
+</head>
+<body class="selection:bg-[#FF4F00]/20 selection:text-[#141413]">
+
+  <!-- ===================================================================== -->
+  <!-- 1. CLASSIC RETRO OS TOP MENU BAR                                      -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 w-full bg-[#D8D5CC] border-b-2 border-[#141413]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-8 h-12 flex items-center justify-between gap-4">
+      <!-- Left Menu Items -->
+      <nav class="flex items-center gap-5 sm:gap-7 text-xs sm:text-[13px] font-semibold">
+        <a href="/" class="flex items-center gap-2 group" aria-label="TR-01 Field Interpreter Home">
+          <span class="w-7 h-7 bg-[#FAF9F6] border-2 border-[#141413] flex items-center justify-center shadow-[2px_2px_0_#141413] group-hover:bg-[#FF4F00] group-hover:text-white transition-colors">
+            <span class="font-mono text-[10px] font-bold">TR</span>
+          </span>
+        </a>
+        <a href="#modules" class="hover:text-[#FF4F00] transition-colors">Modules</a>
+        <a href="#live-sandbox" class="hover:text-[#FF4F00] transition-colors">Live Sandbox</a>
+        <a href="#architecture" class="hover:text-[#FF4F00] transition-colors hidden sm:inline">Pipeline</a>
+        <a href="#languages" class="hover:text-[#FF4F00] transition-colors hidden md:inline">14+ Languages</a>
+      </nav>
+
+      <!-- Right Status & Instant Try Link -->
+      <div class="flex items-center gap-3 font-mono text-[11px]">
+        <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#FAF9F6] border border-[#141413] font-semibold">
+          <span class="w-2 h-2 rounded-full bg-[#FF4F00] orange-beacon"></span>
+          <span>WS ENGINE READY</span>
+        </span>
+        <a href="/app" class="px-3 py-1 bg-[#141413] text-[#F4F3EF] hover:bg-[#FF4F00] hover:text-white font-bold uppercase tracking-wider border border-[#141413] transition-colors">
+          Try Live ↗
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 2. HERO SECTION (WARM PAPER CANVAS + RETRO FIELD-RECORDER MASCOT)     -->
+  <!-- ===================================================================== -->
+  <section class="relative bg-[#F4F3EF] pt-10 sm:pt-16 pb-16 sm:pb-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-6 items-center">
+
+        <!-- Left Hero Copy & Primary "Try" CTA -->
+        <div class="md:col-span-7 space-y-5">
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-[#FAF9F6] border-2 border-[#141413] shadow-[2px_2px_0_#141413] font-mono text-[11px] font-bold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-[#FF4F00]"></span>
+            <span>UNIT TR-01 // ZERO-WAIT SIMULTANEOUS SPEECH</span>
+          </div>
+
+          <h1 class="font-speech text-5xl sm:text-6xl lg:text-[66px] font-bold tracking-tight leading-[1.02] text-[#141413]">
+            Hello<span class="text-[#FF4F00]">.</span><br />
+            Speak Live<span class="text-[#FF4F00]">.</span>
+          </h1>
+
+          <p class="text-base sm:text-lg text-[#2B2A28] max-w-md leading-relaxed">
+            A real-time simultaneous language translator powered by <span class="underline decoration-[#FF4F00] decoration-2 underline-offset-4 font-semibold">Python &amp; full-duplex WebSockets</span>. Words translate on screen &amp; aloud <strong>while you are still speaking</strong> — no stop button required.
+          </p>
+
+          <!-- Primary Try Action Buttons -->
+          <div class="flex flex-wrap items-center gap-3.5 pt-2">
+            <a href="/app"
+               id="hero-try-btn"
+               class="btn-retro-primary px-6 py-3.5 text-xs sm:text-sm uppercase tracking-wider">
+              <span>●</span>
+              <span>Try Working Model</span>
+              <span>→</span>
+            </a>
+
+            <a href="#live-sandbox"
+               class="btn-retro-neutral px-5 py-3.5 text-xs sm:text-sm uppercase tracking-wider">
+              <span>Interactive Preview</span>
+              <span>↓</span>
+            </a>
+          </div>
+
+          <!-- Micro Metrics Row -->
+          <div class="pt-3 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] text-[#8C8A84]">
+            <span><strong class="text-[#141413]">&lt;150 MS</strong> HYBRID STREAM</span>
+            <span>•</span>
+            <span><strong class="text-[#141413]">16 KHZ</strong> FASTER-WHISPER</span>
+            <span>•</span>
+            <span><strong class="text-[#141413]">14+</strong> NEURAL VOICES</span>
+          </div>
+        </div>
+
+        <!-- Right Hero Retro Vector Illustration (Inspired by the Mac Mascot) -->
+        <div class="md:col-span-5 flex flex-col items-center justify-center">
+          <div class="w-full max-w-[360px] relative">
+            <!-- Dynamic Morphing Translation Speech Tag -->
+            <div class="mb-2 mx-auto w-fit px-3.5 py-1.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[3px_3px_0_#141413] font-mono text-xs font-bold flex items-center gap-2">
+              <span id="hero-Cycling-Lang" class="px-1.5 py-0.5 bg-[#FF4F00] text-white text-[10px]">ES</span>
+              <span id="hero-Cycling-Text" class="text-[#141413]">"¡Habla sin esperar!"</span>
+            </div>
+
+            <!-- Bold Carbon-Ink & International-Orange Retro Hardware Mascot SVG -->
+            <svg viewBox="0 0 380 300" class="w-full h-auto drop-shadow-sm" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TR-01 Retro Field Translator Illustration">
+              <!-- Base Desk Line -->
+              <line x1="22" y1="274" x2="362" y2="274" stroke="#141413" stroke-width="4" stroke-linecap="round"/>
+
+              <!-- Floating Acoustic Bubbles above Microphone -->
+              <circle class="bubble-float-1" cx="76" cy="48" r="6" fill="#FF4F00" stroke="#141413" stroke-width="3.2"/>
+              <circle class="bubble-float-2" cx="104" cy="34" r="4.5" fill="#FAF9F6" stroke="#141413" stroke-width="3.2"/>
+              <circle class="bubble-float-3" cx="54" cy="70" r="4.5" fill="#FAF9F6" stroke="#141413" stroke-width="3.2"/>
+              <circle class="bubble-float-1" cx="118" cy="64" r="5" fill="#FF4F00" stroke="#141413" stroke-width="3.2"/>
+
+              <!-- Broadcast Microphone Held by Character (Left) -->
+              <!-- Mic Grille Capsule -->
+              <rect x="64" y="84" width="44" height="64" rx="22" fill="#FAF9F6" stroke="#141413" stroke-width="4"/>
+              <path d="M66 106H106M66 118H106M69 94H103" stroke="#141413" stroke-width="2.6"/>
+              <!-- Orange Tally Ring on Mic -->
+              <rect x="70" y="144" width="32" height="11" rx="3" fill="#FF4F00" stroke="#141413" stroke-width="3.5"/>
+              <!-- Mic Handle Body -->
+              <rect x="75" y="155" width="22" height="118" rx="6" fill="#D8D5CC" stroke="#141413" stroke-width="4"/>
+              <circle cx="86" cy="254" r="9" fill="#FAF9F6" stroke="#141413" stroke-width="3.5"/>
+              <circle cx="86" cy="254" r="3.5" fill="#141413"/>
+
+              <!-- Arm Connecting Unit to Microphone -->
+              <path d="M164 214C138 214 126 196 104 188" stroke="#141413" stroke-width="16" stroke-linecap="round"/>
+              <!-- Cartoon Gloved Fingers Gripping Mic Handle -->
+              <rect x="65" y="170" width="32" height="13" rx="6.5" fill="#FAF9F6" stroke="#141413" stroke-width="3.5"/>
+              <rect x="63" y="183" width="35" height="13" rx="6.5" fill="#FAF9F6" stroke="#141413" stroke-width="3.5"/>
+              <rect x="65" y="196" width="33" height="13" rx="6.5" fill="#FAF9F6" stroke="#141413" stroke-width="3.5"/>
+              <rect x="69" y="209" width="27" height="12" rx="6" fill="#FAF9F6" stroke="#141413" stroke-width="3.5"/>
+
+              <!-- Main Retro Computer / Field Recorder 3D Rear Extrusion Shadow -->
+              <rect x="184" y="76" width="154" height="162" rx="24" fill="#141413"/>
+              <!-- Earphone / Speaker Bump on Right Side -->
+              <path d="M336 122C350 122 356 134 356 154C356 174 350 184 336 184Z" fill="#141413"/>
+              <!-- Coiled Audio Cable on Right -->
+              <path d="M352 174C372 184 370 214 352 222C338 228 362 248 340 258L322 263" stroke="#141413" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+
+              <!-- Front Monitor Chassis (Warm Paper) -->
+              <rect x="160" y="72" width="154" height="158" rx="22" fill="#FAF9F6" stroke="#141413" stroke-width="4"/>
+
+              <!-- Top Field-Recorder Tape Spool Ears / Badges -->
+              <circle cx="182" cy="88" r="5" fill="#FF4F00" stroke="#141413" stroke-width="2.5"/>
+              <rect x="270" y="84" width="28" height="8" rx="4" fill="#D8D5CC" stroke="#141413" stroke-width="2.2"/>
+
+              <!-- Inner Carbon-Ink CRT Screen -->
+              <rect x="176" y="100" width="122" height="112" rx="14" fill="#141413"/>
+
+              <!-- Friendly Cyclops / Speaker Eye inside Screen -->
+              <g class="mascot-eye">
+                <circle cx="237" cy="145" r="24" fill="#FAF9F6"/>
+                <circle cx="242" cy="143" r="11" fill="#141413"/>
+                <circle cx="246" cy="139" r="3.8" fill="#FF4F00"/>
+              </g>
+
+              <!-- Expressive Waveform Smile inside Screen -->
+              <path d="M206 184C214 195 260 195 268 184" stroke="#FAF9F6" stroke-width="7" stroke-linecap="round"/>
+              <path d="M214 185L222 179L230 190L238 176L246 190L254 180L260 185" stroke="#FF4F00" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <!-- Keyboard & Tape Transport Base -->
+              <polygon points="154,254 172,238 296,238 284,254" fill="#FAF9F6" stroke="#141413" stroke-width="3.8" stroke-linejoin="round"/>
+              <rect x="152" y="254" width="132" height="19" rx="3" fill="#D8D5CC" stroke="#141413" stroke-width="3.8"/>
+              <!-- Tactile Puck / Mouse on Right -->
+              <path d="M294 273V261C294 254 301 250 311 250C321 250 328 254 328 261V273Z" fill="#FF4F00" stroke="#141413" stroke-width="3.8"/>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 3. STRADDLING "QUICK LINKS" BRUTALIST BAR (SIGNATURE INSPIRATION ROW) -->
+  <!-- ===================================================================== -->
+  <div class="relative">
+    <!-- Full-Width Horizon Divider Line -->
+    <div class="absolute left-0 right-0 bottom-1/2 translate-y-3 border-b-2 border-[#141413] pointer-events-none"></div>
+    <!-- Bottom half background fill so the bar straddles Paper & Halftone cleanly -->
+    <div class="absolute inset-x-0 bottom-0 h-1/2 halftone-surface -z-10"></div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-8 relative z-10">
+      <div class="mb-2.5 flex items-center justify-between">
+        <h2 class="font-speech text-lg font-bold text-[#141413]">Quick launch</h2>
+        <span class="font-mono text-[11px] text-[#8C8A84] hidden sm:inline">CLICK ANY MODE TO ENTER WORKING STUDIO</span>
+      </div>
+
+      <div class="quick-links-grid grid grid-cols-2 md:grid-cols-4 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#141413]">
+        <a href="/app" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm border-r-2 md:border-r-0 border-[#141413]">
+          <span class="font-semibold">Try Live Studio</span>
+          <span class="ql-arrow font-mono font-bold text-base">↗</span>
+        </a>
+        <a href="/app?mode=twoway" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm">
+          <span class="font-semibold">Two-Way Mic</span>
+          <span class="ql-arrow font-mono font-bold text-base">↗</span>
+        </a>
+        <a href="/app?engine=whisper" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm border-r-2 md:border-r-0 border-[#141413]">
+          <span class="font-semibold">Whisper 16kHz</span>
+          <span class="ql-arrow font-mono font-bold text-base">↗</span>
+        </a>
+        <a href="#live-sandbox" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm">
+          <span class="font-semibold">Live Sandbox</span>
+          <span class="ql-arrow font-mono font-bold text-base">↘</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 4. LOWER HALFTONE SECTION: RETRO OS WINDOW FEATURE CARDS + SANDBOX    -->
+  <!-- ===================================================================== -->
+  <main class="halftone-surface pt-14 pb-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-8 space-y-16">
+
+      <!-- SECTION A: INTERACTIVE LIVE SANDBOX WINDOW (TEST REAL BACKEND INSTANTLY!) -->
+      <section id="live-sandbox" class="space-y-4">
+        <div class="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-widest text-[#FF4F00]">NO-MIC INSTANT DEMO</span>
+            <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-[#141413]">Test the Live Engine</h2>
+          </div>
+          <a href="/app" class="font-mono text-xs font-bold underline decoration-[#FF4F00] decoration-2 underline-offset-4 hover:text-[#FF4F00]">
+            Switch to Full Microphone Studio →
+          </a>
+        </div>
+
+        <div class="retro-window-static">
+          <!-- Retro Window Titlebar -->
+          <div class="window-titlebar px-3.5 py-2 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="win-dot bg-[#FF4F00]"></span>
+              <span class="win-dot"></span>
+            </div>
+            <span class="font-mono text-[11px] font-semibold text-[#141413]">ws://localhost:8000/ws/translate — live-simulator.ws</span>
+            <span id="sandbox-ws-tag" class="font-mono text-[10px] font-bold px-2 py-0.5 bg-[#141413] text-[#F4F3EF]">CONNECTING</span>
+          </div>
+
+          <div class="p-5 sm:p-7 space-y-5">
+            <!-- Target Language Pills + Stream Trigger -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="font-mono text-[11px] font-bold text-[#8C8A84] uppercase mr-1">TARGET:</span>
+                <button type="button" data-lang="es" class="sandbox-lang-pill active">ES · Español</button>
+                <button type="button" data-lang="hi" class="sandbox-lang-pill">HI · हिन्दी</button>
+                <button type="button" data-lang="fr" class="sandbox-lang-pill">FR · Français</button>
+                <button type="button" data-lang="ja" class="sandbox-lang-pill">JA · 日本語</button>
+                <button type="button" data-lang="de" class="sandbox-lang-pill">DE · Deutsch</button>
+                <button type="button" data-lang="ar" class="sandbox-lang-pill">AR · العربية</button>
+              </div>
+
+              <div class="font-mono text-[11px] text-[#8C8A84]">
+                LATENCY: <strong id="sandbox-latency" class="text-[#141413]">-- MS</strong>
+              </div>
+            </div>
+
+            <!-- Dual Preview Display (Simulating While-Speaking Stream) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 bg-[#F4F3EF] border-2 border-[#141413]">
+                <div class="flex items-center justify-between font-mono text-[10px] text-[#8C8A84] mb-2">
+                  <span class="font-bold text-[#141413]">CH-01 // SIMULATED LIVE SPEECH</span>
+                  <span id="sandbox-state-pill" class="uppercase text-[#FF4F00] font-bold">READY</span>
+                </div>
+                <p id="sandbox-src-output" class="font-speech text-lg font-medium text-[#141413] min-h-[56px]">
+                  Click "Stream Sample Phrase" below (or type your own) to watch live word-by-word translation.
+                </p>
+              </div>
+
+              <div class="p-4 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413]">
+                <div class="flex items-center justify-between font-mono text-[10px] text-[#8C8A84] mb-2">
+                  <span class="font-bold text-[#FF4F00]">CH-02 // SIMULTANEOUS OUTPUT</span>
+                  <span id="sandbox-tgt-code" class="uppercase text-[#F4F3EF] font-bold">ES</span>
+                </div>
+                <p id="sandbox-tgt-output" class="font-speech text-lg font-semibold text-[#F4F3EF] min-h-[56px] cursor-orange">
+                  ¡Haz clic abajo para ver la traducción simultánea en vivo!
+                </p>
+              </div>
+            </div>
+
+            <!-- Custom Input + Action Bar -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+              <input id="sandbox-input"
+                     type="text"
+                     value="We translate your voice live while you are still speaking without waiting."
+                     placeholder="Type any sentence to stream word-by-word..."
+                     class="flex-1 px-3.5 py-2.5 bg-white border-2 border-[#141413] font-speech text-sm text-[#141413] focus:outline-none focus:border-[#FF4F00]" />
+
+              <button id="sandbox-run-btn" type="button" class="btn-retro-neutral px-4 py-2.5 text-xs uppercase tracking-wider shrink-0">
+                ▶ Stream Word-by-Word
+              </button>
+
+              <a id="sandbox-launch-app-btn" href="/app?target=es" class="btn-retro-primary px-5 py-2.5 text-xs uppercase tracking-wider shrink-0">
+                ● Try With Your Mic →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION B: CORE MODULES (RETRO OS WINDOW CARDS INSPIRED BY "PROJECTS") -->
+      <section id="modules" class="space-y-6">
+        <div class="flex flex-wrap items-end justify-between gap-2">
+          <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-[#141413]">Core Modules</h2>
+          <span class="font-mono text-xs text-[#8C8A84]">4 HARDWARE-GRADE STREAMING SUBSYSTEMS</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-7">
+
+          <!-- Window Card 01 -->
+          <article class="retro-window flex flex-col">
+            <div class="window-titlebar px-3.5 py-2 flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="win-dot"></span>
+                <span class="win-dot"></span>
+              </div>
+              <span class="font-mono text-[11px] font-semibold">01-while-speaking-engine.ws</span>
+              <span class="w-5"></span>
+            </div>
+            <!-- Graphic Banner -->
+            <div class="h-36 bg-[#141413] border-b-2 border-[#141413] p-4 flex flex-col justify-between font-mono text-xs overflow-hidden relative">
+              <div class="flex items-center justify-between text-[10px] text-[#8C8A84]">
+                <span>T = 0.4s → 1.2s</span>
+                <span class="text-[#FF4F00] font-bold">● PROVISIONAL STREAM</span>
+              </div>
+              <div class="space-y-1.5">
+                <div class="text-[#8C8A84] line-through text-[11px]">"Hola cómo..."</div>
+                <div class="text-[#F4F3EF] text-sm font-speech font-semibold">"Hola, ¿cómo te va hoy?"<span class="text-[#FF4F00]">▋</span></div>
+              </div>
+              <div class="text-[10px] text-emerald-400">✓ LOCKED ON 800MS VAD PAUSE</div>
+            </div>
+            <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+              <div>
+                <h3 class="font-speech text-xl font-bold text-[#141413] mb-2">While-Speaking State Machine</h3>
+                <p class="text-sm text-[#4A4945] leading-relaxed">
+                  Provisional phrases appear within 200 ms and refine grammar dynamically in-place as context grows, cancelling stale tasks via monotonic sequence IDs before locking to tape.
+                </p>
+              </div>
+              <div>
+                <a href="/app" class="btn-retro-neutral px-4 py-2 text-xs uppercase tracking-wider">
+                  Try Live Stream →
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- Window Card 02 -->
+          <article class="retro-window flex flex-col">
+            <div class="window-titlebar px-3.5 py-2 flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="win-dot"></span>
+                <span class="win-dot"></span>
+              </div>
+              <span class="font-mono text-[11px] font-semibold">02-dual-asr-whisper.py</span>
+              <span class="w-5"></span>
+            </div>
+            <!-- Graphic Banner -->
+            <div class="h-36 bg-[#EFECE4] border-b-2 border-[#141413] p-4 flex items-center justify-around font-mono">
+              <div class="p-3 bg-white border-2 border-[#141413] shadow-[3px_3px_0_#141413] text-center">
+                <div class="text-[#FF4F00] font-bold text-xs">⚡ HYBRID</div>
+                <div class="text-[10px] text-[#8C8A84] mt-0.5">&lt;150 MS CPU</div>
+              </div>
+              <span class="font-bold text-lg text-[#141413]">⇄</span>
+              <div class="p-3 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] shadow-[3px_3px_0_#FF4F00] text-center">
+                <div class="text-[#FF4F00] font-bold text-xs">🎙 WHISPER</div>
+                <div class="text-[10px] text-[#D8D5CC] mt-0.5">16KHZ PCM + VAD</div>
+              </div>
+            </div>
+            <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+              <div>
+                <h3 class="font-speech text-xl font-bold text-[#141413] mb-2">Dual-Engine ASR Architecture</h3>
+                <p class="text-sm text-[#4A4945] leading-relaxed">
+                  Hot-swap between Ultra-Fast Hybrid streaming and Server-Side Faster-Whisper (`int8` quantized) fed by a custom `AudioWorklet` 16 kHz mono PCM downsampler and Silero VAD.
+                </p>
+              </div>
+              <div>
+                <a href="/app?engine=whisper" class="btn-retro-neutral px-4 py-2 text-xs uppercase tracking-wider">
+                  Try Whisper 16kHz →
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- Window Card 03 -->
+          <article class="retro-window flex flex-col">
+            <div class="window-titlebar px-3.5 py-2 flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="win-dot"></span>
+                <span class="win-dot"></span>
+              </div>
+              <span class="font-mono text-[11px] font-semibold">03-two-way-conversation.dsp</span>
+              <span class="w-5"></span>
+            </div>
+            <!-- Graphic Banner -->
+            <div class="h-36 bg-[#EFECE4] border-b-2 border-[#141413] p-4 flex flex-col justify-center gap-2.5 font-mono text-xs">
+              <div class="self-start px-3 py-1.5 bg-white border-2 border-[#141413] font-semibold">
+                <span class="text-[#FF4F00]">[SPK A · EN]</span> "Where is Gate 14?"
+              </div>
+              <div class="self-end px-3 py-1.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413]">
+                <span class="text-[#FF4F00]">[SPK B · JA]</span> "14番ゲートはあちらです"
+              </div>
+            </div>
+            <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+              <div>
+                <h3 class="font-speech text-xl font-bold text-[#141413] mb-2">Two-Way Shared Microphone</h3>
+                <p class="text-sm text-[#4A4945] leading-relaxed">
+                  Place your laptop between two speakers of different languages. Automatic script &amp; lexicon routing plus Large-Type Presenter Mode turns one mic into an across-the-table interpreter.
+                </p>
+              </div>
+              <div>
+                <a href="/app?mode=twoway" class="btn-retro-neutral px-4 py-2 text-xs uppercase tracking-wider">
+                  Try Two-Way Mode →
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- Window Card 04 -->
+          <article class="retro-window flex flex-col">
+            <div class="window-titlebar px-3.5 py-2 flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="win-dot"></span>
+                <span class="win-dot"></span>
+              </div>
+              <span class="font-mono text-[11px] font-semibold">04-neural-tts-ducking.wav</span>
+              <span class="w-5"></span>
+            </div>
+            <!-- Graphic Banner -->
+            <div class="h-36 bg-[#141413] border-b-2 border-[#141413] p-4 flex items-center justify-between gap-3">
+              <div class="space-y-1 font-mono">
+                <div class="text-[10px] text-[#FF4F00] font-bold uppercase">EDGE NEURAL VOICE</div>
+                <div class="text-xs text-[#F4F3EF]">AEC + Smart Echo Ducking</div>
+                <div class="text-[10px] text-[#8C8A84]">Export: .TXT &amp; .SRT Subtitles</div>
+              </div>
+              <!-- Retro Equalizer Columns -->
+              <div class="flex items-end gap-1.5 h-16 pr-2">
+                <span class="w-2.5 h-6 bg-[#F4F3EF]"></span>
+                <span class="w-2.5 h-12 bg-[#FF4F00]"></span>
+                <span class="w-2.5 h-16 bg-[#FF4F00]"></span>
+                <span class="w-2.5 h-9 bg-[#F4F3EF]"></span>
+                <span class="w-2.5 h-14 bg-[#FF4F00]"></span>
+                <span class="w-2.5 h-5 bg-[#8C8A84]"></span>
+              </div>
+            </div>
+            <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+              <div>
+                <h3 class="font-speech text-xl font-bold text-[#141413] mb-2">Neural TTS &amp; .SRT Subtitles</h3>
+                <p class="text-sm text-[#4A4945] leading-relaxed">
+                  Hear completed clauses spoken aloud in natural neural voices while smart microphone ducking prevents speaker feedback loops. Bookmark favorite phrases or export `.SRT` subtitles.
+                </p>
+              </div>
+              <div>
+                <a href="/app" class="btn-retro-neutral px-4 py-2 text-xs uppercase tracking-wider">
+                  Try Neural Voice →
+                </a>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- SECTION C: ARCHITECTURE & QUICK-LAUNCH LANGUAGE MATRIX -->
+      <section id="architecture" class="retro-window-static">
+        <div class="window-titlebar px-3.5 py-2 flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="win-dot"></span>
+            <span class="win-dot"></span>
+          </div>
+          <span class="font-mono text-[11px] font-semibold">system-pipeline-spec.md</span>
+          <span class="font-mono text-[10px] text-[#8C8A84]">0MS LRU CACHE</span>
+        </div>
+
+        <div class="p-6 sm:p-8 space-y-7">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 font-mono text-xs">
+            <div class="p-3.5 bg-[#F4F3EF] border-2 border-[#141413]">
+              <div class="text-[#FF4F00] font-bold mb-1">01 // CAPTURE</div>
+              <div class="text-[#141413] font-semibold">16kHz AudioWorklet</div>
+              <div class="text-[11px] text-[#8C8A84] mt-1">Mandatory Mic Gate + Hardware AEC &amp; 60fps Scope</div>
+            </div>
+            <div class="p-3.5 bg-[#F4F3EF] border-2 border-[#141413]">
+              <div class="text-[#FF4F00] font-bold mb-1">02 // VAD &amp; ASR</div>
+              <div class="text-[#141413] font-semibold">Silero + Whisper</div>
+              <div class="text-[11px] text-[#8C8A84] mt-1">240ms Pre-Roll Ring Buffer &amp; Hybrid Interim Stream</div>
+            </div>
+            <div class="p-3.5 bg-[#F4F3EF] border-2 border-[#141413]">
+              <div class="text-[#FF4F00] font-bold mb-1">03 // TRANSLATE</div>
+              <div class="text-[#141413] font-semibold">Async MT + LRU</div>
+              <div class="text-[11px] text-[#8C8A84] mt-1">150ms Debounce, Task Cancel &amp; 0ms Prefix Cache</div>
+            </div>
+            <div class="p-3.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413]">
+              <div class="text-[#FF4F00] font-bold mb-1">04 // SYNTHESIZE</div>
+              <div class="text-white font-semibold">Edge Neural TTS</div>
+              <div class="text-[11px] text-[#8C8A84] mt-1">In-Memory MP3 Stream + Smart Speaker Ducking</div>
+            </div>
+          </div>
+
+          <!-- Instant Click-to-Launch Language Grid -->
+          <div id="languages" class="pt-2 border-t-2 border-[#DCD9D0]">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span class="font-mono text-xs font-bold uppercase tracking-wider text-[#141413]">
+                CLICK ANY TARGET LANGUAGE TO LAUNCH WORKING MODEL DIRECTLY:
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <a href="/app?target=es" class="btn-retro-neutral px-3 py-1.5 text-xs">ES · Spanish ↗</a>
+              <a href="/app?target=hi" class="btn-retro-neutral px-3 py-1.5 text-xs">HI · Hindi ↗</a>
+              <a href="/app?target=fr" class="btn-retro-neutral px-3 py-1.5 text-xs">FR · French ↗</a>
+              <a href="/app?target=de" class="btn-retro-neutral px-3 py-1.5 text-xs">DE · German ↗</a>
+              <a href="/app?target=zh-CN" class="btn-retro-neutral px-3 py-1.5 text-xs">ZH · Mandarin ↗</a>
+              <a href="/app?target=ja" class="btn-retro-neutral px-3 py-1.5 text-xs">JA · Japanese ↗</a>
+              <a href="/app?target=ar" class="btn-retro-neutral px-3 py-1.5 text-xs">AR · Arabic ↗</a>
+              <a href="/app?target=pt" class="btn-retro-neutral px-3 py-1.5 text-xs">PT · Portuguese ↗</a>
+              <a href="/app?target=ru" class="btn-retro-neutral px-3 py-1.5 text-xs">RU · Russian ↗</a>
+              <a href="/app?target=ko" class="btn-retro-neutral px-3 py-1.5 text-xs">KO · Korean ↗</a>
+              <a href="/app?target=it" class="btn-retro-neutral px-3 py-1.5 text-xs">IT · Italian ↗</a>
+              <a href="/app?target=tr" class="btn-retro-neutral px-3 py-1.5 text-xs">TR · Turkish ↗</a>
+              <a href="/app?target=nl" class="btn-retro-neutral px-3 py-1.5 text-xs">NL · Dutch ↗</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FINAL CALL-TO-ACTION BANNER -->
+      <section class="bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] shadow-[6px_6px_0_#FF4F00] p-7 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="space-y-2">
+          <div class="font-mono text-xs font-bold uppercase tracking-widest text-[#FF4F00]">● READY TO RECORD</div>
+          <h2 class="font-speech text-2xl sm:text-3xl font-bold tracking-tight">Ready to speak across languages in real time?</h2>
+          <p class="text-sm text-[#D8D5CC] max-w-xl">
+            Arm your microphone in the TR-01 studio and watch your words transcribe, translate, and speak aloud simultaneously.
+          </p>
+        </div>
+        <a href="/app" class="btn-retro-primary px-7 py-4 text-sm uppercase tracking-wider shrink-0 shadow-[4px_4px_0_#FAF9F6]">
+          <span>Try Working Model</span>
+          <span>→</span>
+        </a>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-[#D8D5CC] border-t-2 border-[#141413] py-5">
+    <div class="max-w-5xl mx-auto px-4 sm:px-8 flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-[#141413]">
+      <span>TR-01 FIELD INTERPRETER // FASTAPI + WEBSOCKETS + FASTER-WHISPER</span>
+      <a href="/app" class="font-bold hover:text-[#FF4F00]">LAUNCH STUDIO (/app) ↗</a>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- LANDING PAGE INTERACTIVE SCRIPTS (MASCOT CYCLER + REAL WS SANDBOX)    -->
+  <!-- ===================================================================== -->
+  <script>
+    (() => {
+      "use strict";
+
+      // 1. Hero Mascot Live Multilingual Phrase Cycler
+      const HERO_SAMPLES = [
+        { code: "ES", text: "\"¡Habla sin esperar!\"" },
+        { code: "HI", text: "\"बोलते समय तुरंत अनुवाद!\"" },
+        { code: "FR", text: "\"Parlez sans aucune pause !\"" },
+        { code: "JA", text: "\"話しながらリアルタイム通訳！\"" },
+        { code: "DE", text: "\"Sprich live ohne Stopp-Taste!\"" },
+        { code: "AR", text: "\"ترجمة فورية أثناء الحديث!\"" },
+      ];
+      let heroIdx = 0;
+      const heroLangEl = document.getElementById("hero-Cycling-Lang");
+      const heroTextEl = document.getElementById("hero-Cycling-Text");
+
+      setInterval(() => {
+        heroIdx = (heroIdx + 1) % HERO_SAMPLES.length;
+        const item = HERO_SAMPLES[heroIdx];
+        heroLangEl.textContent = item.code;
+        heroTextEl.textContent = item.text;
+      }, 2300);
+
+      // 2. Live WebSocket No-Mic Sandbox Preview connected to real Python /ws/translate
+      const wsTag = document.getElementById("sandbox-ws-tag");
+      const latencyEl = document.getElementById("sandbox-latency");
+      const statePill = document.getElementById("sandbox-state-pill");
+      const srcOut = document.getElementById("sandbox-src-output");
+      const tgtOut = document.getElementById("sandbox-tgt-output");
+      const tgtCodeEl = document.getElementById("sandbox-tgt-code");
+      const inputEl = document.getElementById("sandbox-input");
+      const runBtn = document.getElementById("sandbox-run-btn");
+      const launchAppBtn = document.getElementById("sandbox-launch-app-btn");
+      const langBtns = document.querySelectorAll(".sandbox-lang-pill");
+
+      let targetLang = "es";
+      let ws = null;
+      let streaming = false;
+
+      function connectSandboxWs() {
+        const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+        ws = new WebSocket(`${proto}//${window.location.host}/ws/translate`);
+
+        ws.onopen = () => {
+          wsTag.textContent = "WS ONLINE";
+          wsTag.className = "font-mono text-[10px] font-bold px-2 py-0.5 bg-[#FF4F00] text-white";
+          sendConfig();
+        };
+
+        ws.onmessage = (ev) => {
+          try {
+            const msg = JSON.parse(ev.data);
+            if (msg.status === "partial") {
+              statePill.textContent = "STREAMING PARTIAL...";
+              srcOut.textContent = msg.original_text;
+              tgtOut.textContent = msg.translated_text;
+              latencyEl.textContent = `${msg.latency_ms} MS${msg.cached ? " ⚡" : ""}`;
+            } else if (msg.status === "final") {
+              statePill.textContent = "LOCKED TO TAPE ✓";
+              srcOut.textContent = msg.original_text;
+              tgtOut.textContent = msg.translated_text;
+              latencyEl.textContent = `${msg.latency_ms} MS${msg.cached ? " ⚡" : ""}`;
+            }
+          } catch {}
+        };
+
+        ws.onclose = () => {
+          wsTag.textContent = "OFFLINE";
+          wsTag.className = "font-mono text-[10px] font-bold px-2 py-0.5 bg-[#8C8A84] text-white";
+        };
+      }
+
+      function sendConfig() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            action: "config",
+            source_lang: "auto",
+            target_lang: targetLang,
+            tts_enabled: false,
+            auto_silence_commit: false,
+          }));
+        }
+      }
+
+      async function runWordByWordSimulation() {
+        if (streaming) return;
+        const text = (inputEl.value || "").trim();
+        if (!text) return;
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          connectSandboxWs();
+          await new Promise((r) => setTimeout(r, 250));
+        }
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+        streaming = true;
+        runBtn.disabled = true;
+        sendConfig();
+
+        const words = text.split(/\s+/);
+        const segId = `landing_${Date.now()}`;
+        try {
+          for (let i = 2; i < words.length; i += 2) {
+            const partial = words.slice(0, i).join(" ");
+            srcOut.textContent = partial;
+            ws.send(JSON.stringify({
+              action: "interim_speech",
+              text: partial,
+              is_final: false,
+              segment_id: segId,
+            }));
+            await new Promise((r) => setTimeout(r, 210));
+          }
+          ws.send(JSON.stringify({
+            action: "interim_speech",
+            text,
+            is_final: true,
+            segment_id: segId,
+          }));
+        } finally {
+          setTimeout(() => {
+            streaming = false;
+            runBtn.disabled = false;
+          }, 300);
+        }
+      }
+
+      langBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          targetLang = btn.dataset.lang || "es";
+          tgtCodeEl.textContent = targetLang.toUpperCase();
+          launchAppBtn.href = `/app?target=${encodeURIComponent(targetLang)}`;
+          langBtns.forEach((b) => b.classList.toggle("active", b === btn));
+          sendConfig();
+          runWordByWordSimulation();
+        });
+      });
+
+      runBtn.addEventListener("click", runWordByWordSimulation);
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          runWordByWordSimulation();
+        }
+      });
+
+      connectSandboxWs();
+    })();
+  </script>
+</body>
+</html>

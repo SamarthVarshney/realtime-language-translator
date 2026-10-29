@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TR-01 FIELD INTERPRETER — Real-Time Simultaneous Language Translator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="min-h-screen antialiased selection:bg-[#FF4F00]/20 selection:text-[#141413] overflow-x-hidden">
+
+  <!-- ===================================================================== -->
+  <!-- MANDATORY MICROPHONE ACCESS GATE OVERLAY (Section 2.1 & 7.4)          -->
+  <!-- ===================================================================== -->
+  <div id="mic-gate-overlay"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="mic-gate-title"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#F4F3EF]/90 backdrop-blur-md transition-opacity duration-300">
+    <div class="field-module max-w-lg w-full rounded-2xl p-7 sm:p-9 relative overflow-hidden">
+      <!-- Top International Orange Caution Stripe -->
+      <div class="absolute inset-x-0 top-0 h-2 bg-[#FF4F00]"></div>
+
+      <!-- Precision Hardware Header -->
+      <div class="flex items-center justify-between mb-6 pt-1">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#141413] text-[#F4F3EF] flex items-center justify-center relative">
+            <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#FF4F00] border-2 border-[#FAF9F6]"></span>
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+            </svg>
+          </div>
+          <div class="font-mono">
+            <div class="text-[11px] font-bold tracking-widest uppercase text-[#8C8A84]">UNIT TR-01 // INPUT CHECK</div>
+            <div class="text-xs font-semibold text-[#141413]">PRE-FLIGHT HARDWARE GATE</div>
+          </div>
+        </div>
+        <span class="font-mono px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-[#FF4F00]/10 text-[#FF4F00] border border-[#FF4F00]/30">
+          MIC LOCKED
+        </span>
+      </div>
+
+      <h1 id="mic-gate-title" class="font-speech text-2xl sm:text-[26px] font-bold tracking-tight text-[#141413] leading-snug mb-2.5">
+        Microphone Access Required for Real-Time Translation
+      </h1>
+      <p id="mic-gate-desc" class="text-sm text-[#57554F] leading-relaxed mb-6">
+        This field recorder translates speech <strong class="text-[#141413] underline decoration-[#FF4F00] decoration-2 underline-offset-2">live while you are speaking</strong> with zero stop-button wait. Arm your microphone input to unlock the live dual-track deck.
+      </p>
+
+      <!-- Hardware Specs Strip -->
+      <div class="grid grid-cols-2 gap-2.5 mb-6 font-mono text-[11px]">
+        <div class="p-3 rounded-xl bg-[#EAE8E1]/75 border border-[#DCD9D0] flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#FF4F00] shrink-0"></span>
+          <span class="text-[#141413] font-medium">200MS LIVE STREAM</span>
+        </div>
+        <div class="p-3 rounded-xl bg-[#EAE8E1]/75 border border-[#DCD9D0] flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#141413] shrink-0"></span>
+          <span class="text-[#141413] font-medium">16KHZ + AEC DUCKING</span>
+        </div>
+      </div>
+
+      <!-- Troubleshooting Box (Shown if permission denied or device missing) -->
+      <div id="mic-troubleshoot-box" class="hidden mb-6 rounded-xl bg-[#FFF3EE] border-2 border-[#FF4F00] p-4 text-xs text-[#141413] space-y-2">
+        <div class="flex items-center gap-2 font-mono font-bold text-[#FF4F00] uppercase tracking-wider text-xs">
+          <span>[!]</span>
+          <span id="mic-error-heading">Microphone Permission Denied</span>
+        </div>
+        <p id="mic-error-detail" class="text-[#2A2A28] leading-relaxed">
+          Browser blocked audio capture. Re-enable microphone input:
+        </p>
+        <ol class="list-decimal list-inside space-y-1 text-[#2A2A28] font-mono text-[11px]">
+          <li>Click the <strong>Tune / Lock icon</strong> in your browser address bar.</li>
+          <li>Switch <strong>Microphone</strong> permission to <strong>Allow</strong>.</li>
+          <li>Verify an input device is connected, then press <strong>ARM MICROPHONE</strong>.</li>
+        </ol>
+      </div>
+
+      <button id="grant-mic-btn"
+              type="button"
+              class="hw-btn-orange w-full py-3.5 px-5 rounded-xl font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
+        <span id="grant-mic-btn-label">Grant Access &amp; Start</span>
+      </button>
+
+      <p class="mt-4 text-center font-mono text-[11px] text-[#8C8A84]">
+        TIP: CONNECT HEADPHONES FOR FULL-DUPLEX SIMULTANEOUS VOICE MONITORING
+      </p>
+      <div class="mt-2.5 text-center">
+        <a href="/" class="font-mono text-[11px] font-bold text-[#141413] hover:text-[#FF4F00] underline underline-offset-4">← Back to Overview</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN FIELD RECORDER CONSOLE (Locked until Microphone Gate passes)     -->
+  <!-- ===================================================================== -->
+  <div id="app-shell" class="min-h-screen flex flex-col max-w-[1460px] mx-auto px-3 sm:px-6 py-3 sm:py-4 gap-3 opacity-25 pointer-events-none select-none transition-opacity duration-300">
+
+    <!-- 1. TOP INSTRUMENT HEADER & LIVE TELEMETRY -->
+    <header class="field-module rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3">
+        <a href="/" title="Back to TR-01 Landing Page" class="hw-btn-subtle px-2.5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+          <span>←</span>
+          <span class="hidden sm:inline">Home</span>
+        </a>
+        <div class="w-10 h-10 rounded-xl bg-[#141413] text-[#F4F3EF] flex flex-col items-center justify-center font-mono leading-none border border-[#141413] relative">
+          <span class="text-[9px] text-[#8C8A84]">TR</span>
+          <span class="text-sm font-bold text-[#FF4F00]">01</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-speech font-bold text-base sm:text-lg tracking-tight text-[#141413]">FIELD INTERPRETER</span>
+            <span class="font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-[#FF4F00] text-white tracking-wider">LIVE DUPLEX</span>
+          </div>
+          <div class="font-mono text-[11px] text-[#8C8A84] hidden sm:flex items-center gap-2">
+            <span>SIMULTANEOUS SPEECH DECK</span>
+            <span>•</span>
+            <span id="session-stats-summary">0 WORDS // 0 WPM // 1 LANG</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dual-Engine Selector (Section 7.4) -->
+      <div class="flex items-center gap-1 p-1 rounded-xl bg-[#EAE8E1] border border-[#D4D1C7]" role="group" aria-label="Speech Recognition Engine Mode">
+        <button id="engine-hybrid-btn"
+                type="button"
+                data-engine="hybrid"
+                title="Browser Live Interim ASR + Python Async WebSocket Translation + Edge Neural TTS (<150ms)"
+                class="engine-tab active px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+          <span class="text-[#FF4F00]">⚡</span>
+          <span>Hybrid Instant</span>
+        </button>
+        <button id="engine-whisper-btn"
+                type="button"
+                data-engine="whisper"
+                title="16kHz WebAudio PCM Stream -> Python Silero VAD + Faster-Whisper ASR"
+                class="engine-tab px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+          <span>🎙</span>
+          <span>Whisper 16kHz</span>
+        </button>
+      </div>
+
+      <!-- Live Telemetry Readouts -->
+      <div class="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+        <div id="whisper-status-pill" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FF4F00]/10 border border-[#FF4F00]/40 text-[#FF4F00] font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#FF4F00] animate-ping"></span>
+          <span id="whisper-status-text">WHISPER READY</span>
+        </div>
+
+        <div class="px-2.5 py-1 rounded-lg bg-[#EAE8E1] border border-[#D4D1C7] text-[#141413]" title="Translation round-trip latency">
+          <span class="text-[#8C8A84]">LAT:</span>
+          <span id="latency-value" class="font-bold text-[#141413]">-- MS</span>
+        </div>
+
+        <div id="ws-status-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#141413] text-[#F4F3EF]">
+          <span id="ws-status-dot" class="w-2 h-2 rounded-full bg-[#FF4F00]"></span>
+          <span id="ws-status-label" class="font-semibold uppercase text-[10px] tracking-wider">CONNECTING</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. RECESSED OLED OSCILLOSCOPE + SPINNING TAPE REELS + VU METER DECK -->
+    <section class="field-module-dark rounded-2xl px-4 py-3 flex flex-col lg:flex-row items-center gap-3.5">
+      <!-- Left: Animated Tape Spools & Recording Tally -->
+      <div class="flex items-center justify-between lg:justify-start gap-3.5 w-full lg:w-auto shrink-0">
+        <!-- Mini Animated Tape Spools -->
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10" title="Dynamic voice-driven tape transport">
+          <svg id="reel-left" class="w-6 h-6 text-[#F4F3EF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" stroke-opacity="0.45" />
+            <circle cx="12" cy="12" r="2.5" fill="#FF4F00" stroke="none" />
+            <path d="M12 3v4M12 17v4M3 12h4M17 12h4" stroke-linecap="round" />
+          </svg>
+          <div class="w-5 h-[2px] bg-[#FF4F00]/60"></div>
+          <svg id="reel-right" class="w-6 h-6 text-[#F4F3EF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" stroke-opacity="0.45" />
+            <circle cx="12" cy="12" r="2.5" fill="#FF4F00" stroke="none" />
+            <path d="M12 3v4M12 17v4M3 12h4M17 12h4" stroke-linecap="round" />
+          </svg>
+        </div>
+
+        <div class="font-mono">
+          <div class="flex items-center gap-2">
+            <span id="mic-live-dot" class="w-2.5 h-2.5 rounded-full rec-dot-orange"></span>
+            <span id="capture-state-label" class="text-xs font-bold tracking-wider uppercase text-[#FF4F00]">REC // LISTENING</span>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] text-[#8C8A84] mt-0.5">
+            <span id="timecode-display" class="text-[#F4F3EF] font-semibold">TC 00:00:00</span>
+            <span>|</span>
+            <span id="rms-meter-text">-60 dB • 16KHZ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: High-DPI 60 FPS Interactive Oscilloscope / Spectrum Canvas -->
+      <div id="visualizer-box"
+           title="Click waveform to cycle display modes (Spectrum Bars / Oscilloscope / Mirrored Field)"
+           class="relative flex-1 w-full h-14 rounded-xl bg-[#0B0B0A] border border-white/10 overflow-hidden cursor-pointer group">
+        <canvas id="waveform-canvas" class="w-full h-full block"></canvas>
+        <div class="absolute top-1.5 right-2 font-mono text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded bg-white/10 text-[#8C8A84] group-hover:text-white transition-colors">
+          MODE: <span id="viz-mode-label" class="text-[#FF4F00] font-bold">BARS</span> [CLICK]
+        </div>
+      </div>
+
+      <!-- Right: Tactile SFX & Large-Type Focus Switches -->
+      <div class="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto shrink-0 font-mono text-[11px]">
+        <button id="toggle-focus-btn"
+                type="button"
+                title="Enlarge speech typography for across-the-table conversation reading"
+                class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[#F4F3EF] border border-white/15 transition-colors uppercase font-semibold text-[10px]">
+          ⤢ Large Type
+        </button>
+        <button id="toggle-sfx-btn"
+                type="button"
+                aria-pressed="true"
+                title="Toggle subtle mechanical field-recorder button click sound"
+                class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[#FF4F00] border border-white/15 transition-colors uppercase font-semibold text-[10px]">
+          SFX: ON
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. LANGUAGE ROUTING MATRIX & TWO-WAY CONVERSATION DECK (Section 2.2) -->
+    <section class="field-module rounded-2xl px-4 py-3 flex flex-col gap-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- Source -> Swap -> Target Selectors -->
+        <div class="flex flex-wrap sm:flex-nowrap items-end gap-2 flex-1 min-w-[280px]">
+          <div class="flex-1 min-w-[145px]">
+            <label for="source-lang-select" class="block font-mono text-[10px] uppercase tracking-widest text-[#8C8A84] font-bold mb-1">
+              CH-A // SPOKEN INPUT
+            </label>
+            <select id="source-lang-select"
+                    class="w-full bg-white text-[#141413] font-speech text-sm font-semibold rounded-xl px-3 py-2 border-[1.5px] border-[#141413] focus:outline-none focus:ring-2 focus:ring-[#FF4F00]">
+            </select>
+          </div>
+
+          <button id="swap-langs-btn"
+                  type="button"
+                  title="Invert Source and Target Channels"
+                  class="hw-btn p-2.5 rounded-xl">
+            <svg id="swap-icon" class="w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+          </button>
+
+          <div class="flex-1 min-w-[145px]">
+            <label for="target-lang-select" class="block font-mono text-[10px] uppercase tracking-widest text-[#FF4F00] font-bold mb-1">
+              CH-B // LIVE TRANSLATION
+            </label>
+            <select id="target-lang-select"
+                    class="w-full bg-white text-[#141413] font-speech text-sm font-semibold rounded-xl px-3 py-2 border-[1.5px] border-[#141413] focus:outline-none focus:ring-2 focus:ring-[#FF4F00]">
+            </select>
+          </div>
+        </div>
+
+        <!-- Two-Way Shared-Mic Toggle & Speaker Turn Keys -->
+        <div class="flex flex-wrap items-center gap-2 pt-1 sm:pt-4">
+          <button id="bidirectional-btn"
+                  type="button"
+                  aria-pressed="false"
+                  title="Share one microphone seamlessly between two speakers of different languages"
+                  class="hw-btn-subtle px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+            <span id="bidir-indicator" class="w-2 h-2 rounded-full bg-[#8C8A84]"></span>
+            <span>⇄ Two-Way Conversation</span>
+          </button>
+
+          <div id="speaker-turn-group" class="hidden items-center gap-1 p-1 rounded-xl bg-[#EAE8E1] border border-[#141413] text-[11px]">
+            <button type="button" data-speaker="auto" class="speaker-pill active px-2.5 py-1 rounded-lg font-bold uppercase">Auto</button>
+            <button type="button" data-speaker="A" id="speaker-a-btn" class="speaker-pill px-2.5 py-1 rounded-lg font-bold uppercase">SPK A</button>
+            <button type="button" data-speaker="B" id="speaker-b-btn" class="speaker-pill px-2.5 py-1 rounded-lg font-bold uppercase">SPK B</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- One-Tap Quick-Tune Target Language Matrix (Encourages instant multi-language exploration!) -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E5E2D9]">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-[#8C8A84] mr-1">QUICK-TUNE:</span>
+          <div id="quick-lang-bar" class="flex flex-wrap items-center gap-1.5"></div>
+        </div>
+
+        <!-- Saved / All Filter & Test Phrase Trigger -->
+        <div class="flex items-center gap-1.5 font-mono text-[11px]">
+          <button id="filter-starred-btn"
+                  type="button"
+                  class="px-2.5 py-1 rounded-md bg-[#EAE8E1] hover:bg-[#DFDCD3] text-[#141413] font-semibold transition-colors">
+            ★ SAVED (<span id="starred-count">0</span>)
+          </button>
+          <button id="shuffle-prompts-btn"
+                  type="button"
+                  title="Send or shuffle an instant sample phrase to test the current voice & language"
+                  class="px-2.5 py-1 rounded-md bg-[#FF4F00]/10 hover:bg-[#FF4F00]/20 text-[#FF4F00] font-bold transition-colors">
+            ⚡ DEMO PHRASE
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. DUAL-TRACK SIMULTANEOUS TRANSCRIPT DECK (Section 2.3 & 2.4) -->
+    <main id="transcript-main" class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3.5 min-h-[410px]">
+
+      <!-- TRACK 01: LIVE SOURCE SPEECH -->
+      <section class="field-module rounded-2xl flex flex-col overflow-hidden min-h-[330px]">
+        <div class="px-4 py-2.5 border-b border-[#DCD9D0] bg-[#EFECE5] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="corner-screw"></span>
+            <h2 class="font-mono text-xs font-bold uppercase tracking-wider text-[#141413]">TRACK 01 // SOURCE SPEECH</h2>
+            <span id="active-source-badge" class="font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-white text-[#141413] border border-[#C6C3B8]">AUTO-DETECT</span>
+          </div>
+          <span id="utterance-count-badge" class="font-mono text-[11px] font-semibold text-[#8C8A84]">00 TAKES</span>
+        </div>
+
+        <div id="source-pane-scroll" class="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar">
+          <!-- Interactive Icebreaker Onboarding Empty State -->
+          <div id="source-empty-state" class="h-full min-h-[230px] flex flex-col items-center justify-center text-center px-4">
+            <div class="font-mono text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#EAE8E1] text-[#8C8A84] mb-3">
+              READY FOR VOICE INPUT — OR TAP A PHRASE TO TEST
+            </div>
+            <p class="font-speech text-lg font-bold text-[#141413]">Speak naturally without pausing</p>
+            <p class="text-xs text-[#8C8A84] mt-1 mb-4 max-w-sm">
+              Read any prompt below aloud — or click one to fire an instant live translation &amp; neural voice test:
+            </p>
+            <div id="prompt-chips-container" class="flex flex-wrap justify-center gap-2 max-w-md"></div>
+          </div>
+
+          <!-- Committed Source History -->
+          <div id="source-history-list" class="space-y-2.5"></div>
+
+          <!-- Active Provisional Source Stream Bubble -->
+          <div id="source-provisional-card" class="hidden provisional-card-source rounded-xl p-4">
+            <div class="flex items-center justify-between font-mono text-[10px] text-[#8C8A84] mb-1.5">
+              <span class="flex items-center gap-1.5 font-bold text-[#141413] uppercase">
+                <span class="w-2 h-2 rounded-full bg-[#FF4F00] animate-ping"></span>
+                <span>LIVE INPUT // REFINING</span>
+              </span>
+              <span id="source-provisional-lang" class="uppercase font-bold text-[#141413]">AUTO</span>
+            </div>
+            <p id="source-provisional-text" class="provisional-body-text font-speech text-base sm:text-lg italic text-[#141413] leading-relaxed live-cursor"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRACK 02: SIMULTANEOUS TARGET TRANSLATION -->
+      <section class="field-module rounded-2xl flex flex-col overflow-hidden min-h-[330px]">
+        <div class="px-4 py-2.5 border-b border-[#DCD9D0] bg-[#EFECE5] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="corner-screw"></span>
+            <h2 class="font-mono text-xs font-bold uppercase tracking-wider text-[#141413]">TRACK 02 // LIVE TRANSLATION</h2>
+            <span id="active-target-badge" class="font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-[#FF4F00] text-white">SPANISH</span>
+          </div>
+          <div id="tts-playing-indicator" class="hidden items-center gap-1.5 font-mono text-[10px] font-bold uppercase text-[#FF4F00]">
+            <span class="tts-bars"><i></i><i></i><i></i></span>
+            <span>VOICE OUT</span>
+          </div>
+        </div>
+
+        <div id="target-pane-scroll" class="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar">
+          <!-- Empty State -->
+          <div id="target-empty-state" class="h-full min-h-[230px] flex flex-col items-center justify-center text-center px-6">
+            <div class="w-11 h-11 rounded-xl bg-[#EAE8E1] border border-[#D4D1C7] flex items-center justify-center mb-3 text-[#FF4F00] font-mono font-bold text-sm">
+              ⇄
+            </div>
+            <p class="font-speech text-lg font-bold text-[#141413]">Zero-wait simultaneous monitor</p>
+            <p class="text-xs text-[#8C8A84] mt-1 max-w-xs">
+              Grammar refines live in International Orange as you speak, then stamps to tape with neural TTS playback.
+            </p>
+          </div>
+
+          <!-- Committed Target History -->
+          <div id="target-history-list" class="space-y-2.5"></div>
+
+          <!-- Active Provisional Target Translation Bubble -->
+          <div id="target-provisional-card" class="hidden provisional-card-target rounded-xl p-4">
+            <div class="flex items-center justify-between font-mono text-[10px] text-[#FF4F00] mb-1.5">
+              <span class="flex items-center gap-1.5 font-bold uppercase">
+                <span class="w-2 h-2 rounded-full bg-[#FF4F00] animate-ping"></span>
+                <span>SIMULTANEOUS TRANSLATION</span>
+              </span>
+              <span id="target-provisional-latency" class="font-bold">-- MS</span>
+            </div>
+            <p id="target-provisional-text" class="provisional-body-text font-speech text-base sm:text-lg font-semibold italic text-[#141413] leading-relaxed live-cursor"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 5. PHYSICAL TRANSPORT & EXPORT CONTROL DOCK (Section 2.4) -->
+    <footer class="field-module rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Left: Transport Keys -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button id="toggle-listen-btn"
+                type="button"
+                class="hw-btn-orange px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+          <span id="listen-btn-icon">●</span>
+          <span id="listen-btn-label">REC // PAUSE [SPACE]</span>
+        </button>
+
+        <button id="toggle-tts-btn"
+                type="button"
+                aria-pressed="true"
+                class="hw-btn px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+          <span id="tts-btn-icon" class="text-[#FF4F00]">🔊</span>
+          <span id="tts-btn-label">VOICE: ON</span>
+        </button>
+
+        <button id="toggle-ducking-btn"
+                type="button"
+                aria-pressed="true"
+                title="Attenuates mic while speaker TTS plays to prevent echo loops. Switch OFF when using headphones."
+                class="hw-btn-subtle is-active px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+          <span>🛡</span>
+          <span id="ducking-btn-label">DUCKING: ON</span>
+        </button>
+      </div>
+
+      <!-- Right: Tape Clear & Archival Exports -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="clear-transcript-btn"
+                type="button"
+                class="hw-btn-subtle px-3 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:text-[#FF4F00]">
+          ✕ EJECT / CLEAR
+        </button>
+
+        <button id="export-txt-btn"
+                type="button"
+                class="hw-btn px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+          <span>↓</span>
+          <span>.TXT LOG</span>
+        </button>
+
+        <button id="export-srt-btn"
+                type="button"
+                class="hw-btn px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+          <span>↓</span>
+          <span>.SRT SUBS</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Hardware Toast Feed -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

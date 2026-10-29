@@ -1,0 +1,386 @@
+/* ==========================================================================
+   TR-01 FIELD RECORDER DESIGN SYSTEM
+   Palette:
+     - Background Surface : #F4F3EF (Warm Paper)
+     - Primary Text       : #141413 (Carbon Ink)
+     - Active / Rec Accent: #FF4F00 (International Orange)
+     - Secondary / Muted  : #8C8A84 (Warm Grey)
+   Typography:
+     - Speech / Display   : 'Space Grotesk', sans-serif
+     - UI / Metrics       : 'JetBrains Mono', monospace
+   ========================================================================== */
+
+:root {
+  --bg-paper: #F4F3EF;
+  --bg-module: #FAF9F6;
+  --bg-well: #EAE8E1;
+  --ink-carbon: #141413;
+  --ink-soft: #2A2A28;
+  --accent-orange: #FF4F00;
+  --accent-orange-soft: rgba(255, 79, 0, 0.11);
+  --accent-orange-glow: rgba(255, 79, 0, 0.28);
+  --muted-grey: #8C8A84;
+  --border-hairline: #DCD9D0;
+  --border-strong: #C6C3B8;
+
+  --font-speech: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-speech);
+  background-color: var(--bg-paper);
+  color: var(--ink-carbon);
+  /* Precision archival drafting micro-dot matrix on Warm Paper */
+  background-image: radial-gradient(#D5D2C8 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.font-speech {
+  font-family: var(--font-speech);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* ==========================================================================
+   TACTILE HARDWARE CHASSIS & MODULES
+   ========================================================================== */
+
+.field-module {
+  background: var(--bg-module);
+  border: 1.5px solid var(--border-hairline);
+  box-shadow:
+    0 2px 0 #E2DFD7,
+    0 10px 24px -14px rgba(20, 20, 19, 0.08);
+  position: relative;
+}
+
+.field-module-dark {
+  background: var(--ink-carbon);
+  color: var(--bg-paper);
+  border: 1.5px solid #2B2B29;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.65),
+    0 2px 0 #FFFFFF;
+}
+
+/* Corner precision registration screws */
+.corner-screw {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  border: 1px solid #C5C2B8;
+  background: linear-gradient(135deg, #ECEAE3 0%, #D5D2C9 100%);
+  position: relative;
+  display: inline-block;
+}
+
+.corner-screw::after {
+  content: "";
+  position: absolute;
+  top: 2.5px;
+  left: 1px;
+  right: 1px;
+  height: 1px;
+  background: #9E9B93;
+  transform: rotate(-35deg);
+}
+
+/* ==========================================================================
+   MECHANICAL KEYCAP BUTTONS & SWITCHES
+   ========================================================================== */
+
+.hw-btn {
+  font-family: var(--font-mono);
+  background: #FFFFFF;
+  color: var(--ink-carbon);
+  border: 1.5px solid var(--ink-carbon);
+  box-shadow: 0 3px 0 var(--ink-carbon);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.14s ease, color 0.14s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hw-btn:hover:not(:disabled) {
+  background: #F8F7F3;
+}
+
+.hw-btn:active:not(:disabled),
+.hw-btn.is-pressed {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink-carbon);
+}
+
+.hw-btn-orange {
+  font-family: var(--font-mono);
+  background: var(--accent-orange);
+  color: #FFFFFF;
+  border: 1.5px solid var(--ink-carbon);
+  box-shadow: 0 3px 0 var(--ink-carbon);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.14s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hw-btn-orange:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.hw-btn-orange:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink-carbon);
+}
+
+.hw-btn-subtle {
+  font-family: var(--font-mono);
+  background: var(--bg-well);
+  color: var(--ink-carbon);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 2px 0 var(--border-strong);
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+
+.hw-btn-subtle:hover {
+  background: #E2DFD6;
+  border-color: var(--ink-carbon);
+}
+
+.hw-btn-subtle:active {
+  transform: translateY(1.5px);
+  box-shadow: 0 0.5px 0 var(--border-strong);
+}
+
+.hw-btn-subtle.is-active {
+  background: var(--ink-carbon);
+  color: var(--bg-paper);
+  border-color: var(--ink-carbon);
+  box-shadow: 0 2px 0 #000000;
+}
+
+/* Segmented Engine & Filter Tabs */
+.engine-tab {
+  font-family: var(--font-mono);
+  color: var(--muted-grey);
+  border: 1px solid transparent;
+  transition: all 0.14s ease;
+}
+
+.engine-tab:hover {
+  color: var(--ink-carbon);
+}
+
+.engine-tab.active {
+  background: var(--ink-carbon);
+  color: var(--bg-paper);
+  border-color: var(--ink-carbon);
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.2);
+}
+
+/* Quick-Tune Language Matrix Keys */
+.quick-lang-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: #EFECE5;
+  color: #57554F;
+  border: 1px solid #D8D5CB;
+  transition: all 0.12s ease;
+  cursor: pointer;
+}
+
+.quick-lang-pill:hover {
+  border-color: var(--ink-carbon);
+  color: var(--ink-carbon);
+  background: #FFFFFF;
+}
+
+.quick-lang-pill.active {
+  background: var(--accent-orange);
+  color: #FFFFFF;
+  border-color: var(--ink-carbon);
+  box-shadow: 0 2px 0 var(--ink-carbon);
+  transform: translateY(-1px);
+}
+
+/* Speaker Turn Pills */
+.speaker-pill {
+  font-family: var(--font-mono);
+  color: var(--muted-grey);
+  transition: all 0.12s ease;
+}
+
+.speaker-pill.active {
+  background: var(--accent-orange);
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
+   TALLY LEDS, TAPE REELS & LIVE RECORDING PULSES
+   ========================================================================== */
+
+.rec-dot-orange {
+  background-color: var(--accent-orange);
+  box-shadow: 0 0 0 0 rgba(255, 79, 0, 0.65);
+  animation: orangeBeacon 1.5s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+@keyframes orangeBeacon {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 79, 0, 0.65);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 79, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 79, 0, 0);
+  }
+}
+
+/* Live Provisional Tape Stream Cards */
+.provisional-card-source {
+  background: #FFFFFF;
+  border: 1.5px dashed var(--ink-carbon);
+  box-shadow: 0 6px 20px -8px rgba(20, 20, 19, 0.14);
+  transition: all 0.16s ease;
+}
+
+.provisional-card-target {
+  background: #FFF6F2;
+  border: 2px solid var(--accent-orange);
+  box-shadow: 0 8px 24px -8px rgba(255, 79, 0, 0.22);
+  transition: all 0.16s ease;
+}
+
+/* Blinking Live Typewriter Block Cursor on Provisional Text */
+.live-cursor::after {
+  content: "▋";
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--accent-orange);
+  font-size: 0.85em;
+  animation: cursorBlink 0.85s steps(2, start) infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Committed Tape Entry Cards */
+.tape-entry-card {
+  background: #FFFFFF;
+  border: 1px solid #DFDDD4;
+  box-shadow: 0 1px 2px rgba(20, 20, 19, 0.03);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  animation: stampIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tape-entry-card:hover {
+  border-color: #BDB9AE;
+  box-shadow: 0 4px 12px -4px rgba(20, 20, 19, 0.07);
+}
+
+.tape-entry-target {
+  background: #FFFFFF;
+  border-left: 3.5px solid var(--ink-carbon);
+}
+
+.tape-entry-target.is-starred {
+  border-left-color: var(--accent-orange);
+  background: #FFFDFB;
+}
+
+@keyframes stampIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus / Large Presenter Typography Mode */
+.focus-type-active .clause-body-text {
+  font-size: 1.45rem !important;
+  line-height: 1.42 !important;
+  letter-spacing: -0.015em;
+}
+
+.focus-type-active .provisional-body-text {
+  font-size: 1.55rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Animated Mini Equalizer for Active TTS Playback */
+.tts-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.tts-bars i {
+  display: block;
+  width: 2.5px;
+  background: var(--accent-orange);
+  border-radius: 1px;
+  animation: ttsEq 0.65s ease-in-out infinite alternate;
+}
+
+.tts-bars i:nth-child(1) { height: 4px; animation-delay: 0s; }
+.tts-bars i:nth-child(2) { height: 12px; animation-delay: 0.16s; }
+.tts-bars i:nth-child(3) { height: 7px; animation-delay: 0.32s; }
+
+@keyframes ttsEq {
+  0% { height: 3px; }
+  100% { height: 12px; }
+}
+
+/* Prompt / Icebreaker Chips */
+.prompt-chip {
+  background: #FFFFFF;
+  border: 1px solid #D8D5CB;
+  color: var(--ink-carbon);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.prompt-chip:hover {
+  border-color: var(--accent-orange);
+  box-shadow: 0 3px 0 var(--accent-orange);
+  transform: translateY(-1px);
+}
+
+.prompt-chip:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 var(--accent-orange);
+}
+
+/* Sleek Archival Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #CFCBC0;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-grey);
+}
