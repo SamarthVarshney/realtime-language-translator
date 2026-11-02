@@ -722,29 +722,223 @@
         </div>
       </section>
 
-      <!-- FINAL CALL-TO-ACTION BANNER -->
-      <section class="bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] shadow-[6px_6px_0_#FF4F00] p-7 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div class="space-y-2">
-          <div class="font-mono text-xs font-bold uppercase tracking-widest text-[#FF4F00]">● READY TO RECORD</div>
-          <h2 class="font-speech text-2xl sm:text-3xl font-bold tracking-tight">Ready to speak across languages in real time?</h2>
-          <p class="text-sm text-[#D8D5CC] max-w-xl">
-            Arm your microphone in the TR-01 studio and watch your words transcribe, translate, and speak aloud simultaneously.
-          </p>
+      <!-- FINAL CALL-TO-ACTION HARDWARE CONSOLE BANNER -->
+      <section class="retro-window-static bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] shadow-[8px_8px_0_#FF4F00] overflow-hidden">
+        <!-- Titlebar -->
+        <div class="window-titlebar bg-[#242422] border-b-2 border-[#141413] px-4 py-2 flex items-center justify-between font-mono text-[11px] text-[#D8D5CC]">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF4F00] orange-beacon"></span>
+            <span class="font-bold text-white tracking-wider">UNIT TR-01 // READY TO RECORD</span>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 text-[10px] text-[#8C8A84]">
+            <span>INPUT: <strong class="text-[#FAF9F6]">STEREO 16KHZ</strong></span>
+            <span>•</span>
+            <span>LATENCY: <strong class="text-[#FF4F00]">&lt;150MS</strong></span>
+            <span>•</span>
+            <span>STATUS: <strong class="text-emerald-400">ARMED</strong></span>
+          </div>
         </div>
-        <a href="/app" class="btn-retro-primary px-7 py-4 text-sm uppercase tracking-wider shrink-0 shadow-[4px_4px_0_#FAF9F6]">
-          <span>Try Working Model</span>
-          <span>→</span>
-        </a>
+
+        <!-- Banner Content -->
+        <div class="p-7 sm:p-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+          <div class="space-y-3 max-w-2xl">
+            <div class="flex items-center gap-2 font-mono text-xs text-[#FF4F00] font-bold uppercase tracking-wider">
+              <span>● ZERO-WAIT SIMULTANEOUS TRANSLATION</span>
+            </div>
+            <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+              Ready to speak across languages in real time?
+            </h2>
+            <p class="text-sm sm:text-base text-[#D8D5CC] leading-relaxed">
+              Step up to the microphone in the TR-01 studio. Your words transcribe, translate, and synthesize aloud simultaneously while you continue speaking.
+            </p>
+
+            <!-- Quick mode buttons -->
+            <div class="flex flex-wrap items-center gap-2 pt-1 font-mono text-xs">
+              <a href="/app" class="px-2.5 py-1 bg-[#242422] border border-[#444] text-[#D8D5CC] hover:text-white hover:border-[#FF4F00] transition-colors">
+                ⚡ Hybrid Stream (&lt;150ms)
+              </a>
+              <a href="/app?engine=whisper" class="px-2.5 py-1 bg-[#242422] border border-[#444] text-[#D8D5CC] hover:text-white hover:border-[#FF4F00] transition-colors">
+                🎙 Faster-Whisper + VAD
+              </a>
+              <a href="/app?mode=twoway" class="px-2.5 py-1 bg-[#242422] border border-[#444] text-[#D8D5CC] hover:text-white hover:border-[#FF4F00] transition-colors">
+                ⇄ Two-Way Conversation
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Launch Action Card -->
+          <div class="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-3 shrink-0 w-full sm:w-auto">
+            <a href="/app" class="btn-retro-primary px-8 py-4 text-sm sm:text-base uppercase tracking-wider shadow-[5px_5px_0_#FAF9F6] text-center">
+              <span>●</span>
+              <span>Launch Studio</span>
+              <span>→</span>
+            </a>
+            <span class="font-mono text-[11px] text-[#8C8A84] text-center lg:text-right">
+              No account required • Instant browser access
+            </span>
+          </div>
+        </div>
       </section>
 
     </div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-[#D8D5CC] border-t-2 border-[#141413] py-5">
-    <div class="max-w-5xl mx-auto px-4 sm:px-8 flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-[#141413]">
-      <span>TR-01 FIELD INTERPRETER // FASTAPI + WEBSOCKETS + FASTER-WHISPER</span>
-      <a href="/app" class="font-bold hover:text-[#FF4F00]">LAUNCH STUDIO (/app) ↗</a>
+  <!-- ===================================================================== -->
+  <!-- 5. RETRO-OS HARDWARE FOOTER & TELEMETRY SECTION                        -->
+  <!-- ===================================================================== -->
+  <footer class="bg-[#D8D5CC] border-t-2 border-[#141413]">
+    <!-- Hardware Status Ticker Strip -->
+    <div class="bg-[#141413] text-[#FAF9F6] border-b-2 border-[#141413] py-2 px-4 sm:px-8">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 font-mono text-[11px]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#FF4F00] orange-beacon"></span>
+          <span class="text-[#FF4F00] font-bold">SYSTEM TELEMETRY:</span>
+          <span class="text-[#D8D5CC]">ENGINE ACTIVE (127.0.0.1:8000)</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-4 text-[#8C8A84]">
+          <span>WS: <strong class="text-white">FULL-DUPLEX</strong></span>
+          <span>•</span>
+          <span>AUDIO: <strong class="text-white">16 KHZ PCM</strong></span>
+          <span>•</span>
+          <span>VAD: <strong class="text-white">SILERO + RMS</strong></span>
+          <span>•</span>
+          <span>CACHE: <strong class="text-white">0 MS LRU</strong></span>
+        </div>
+        <div>
+          <a href="/app" class="text-[#FF4F00] hover:text-white font-bold transition-colors">
+            OPEN STUDIO →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Multi-Column Footer Grid -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-8 py-10 sm:py-12">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10">
+        <!-- Col 1: Unit Identity & Hardware Spec (5 cols) -->
+        <div class="md:col-span-5 space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 bg-[#141413] text-[#FF4F00] border-2 border-[#141413] flex items-center justify-center font-mono font-bold text-xs shadow-[2px_2px_0_#FF4F00]">
+              TR
+            </span>
+            <div>
+              <h3 class="font-speech text-lg font-bold tracking-tight text-[#141413] leading-none">TR-01 Field Interpreter</h3>
+              <span class="font-mono text-[10px] text-[#8C8A84] uppercase tracking-wider">Simultaneous Speech Translation Workstation</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-[#3D3C38] leading-relaxed max-w-sm">
+            Zero-wait simultaneous neural speech translation. Captures streaming voice over full-duplex WebSockets and renders translated subtitles and neural speech while the speaker is still talking.
+          </p>
+
+          <div class="flex flex-wrap gap-1.5 font-mono text-[10px]">
+            <span class="px-2 py-0.5 bg-[#FAF9F6] border border-[#141413] font-semibold text-[#141413]">FastAPI Async</span>
+            <span class="px-2 py-0.5 bg-[#FAF9F6] border border-[#141413] font-semibold text-[#141413]">Faster-Whisper</span>
+            <span class="px-2 py-0.5 bg-[#FAF9F6] border border-[#141413] font-semibold text-[#141413]">Silero VAD</span>
+            <span class="px-2 py-0.5 bg-[#FAF9F6] border border-[#141413] font-semibold text-[#141413]">Edge Neural TTS</span>
+          </div>
+        </div>
+
+        <!-- Col 2: Studio Modes & Tools (3 cols) -->
+        <div class="md:col-span-3 space-y-3 font-mono">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#141413] border-b-2 border-[#141413] pb-1">
+            Studio Modes
+          </h4>
+          <ul class="space-y-2 text-xs">
+            <li>
+              <a href="/app" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>Live Mic Studio</span>
+                <span>↗</span>
+              </a>
+            </li>
+            <li>
+              <a href="/app?mode=twoway" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>Two-Way Conversation</span>
+                <span>↗</span>
+              </a>
+            </li>
+            <li>
+              <a href="/app?engine=whisper" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>Whisper 16kHz PCM</span>
+                <span>↗</span>
+              </a>
+            </li>
+            <li>
+              <a href="#live-sandbox" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>No-Mic Sandbox</span>
+                <span>↘</span>
+              </a>
+            </li>
+            <li>
+              <a href="/app#history" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>Phrasebook &amp; Export</span>
+                <span>↗</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Developer & API Links (4 cols) -->
+        <div class="md:col-span-4 space-y-3 font-mono">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#141413] border-b-2 border-[#141413] pb-1">
+            Developer &amp; Endpoints
+          </h4>
+          <ul class="space-y-2 text-xs">
+            <li>
+              <a href="/docs" target="_blank" rel="noopener" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>Interactive Swagger Docs</span>
+                <span>/docs ↗</span>
+              </a>
+            </li>
+            <li>
+              <a href="/api/health" target="_blank" rel="noopener" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>System Health Telemetry</span>
+                <span>/api/health ↗</span>
+              </a>
+            </li>
+            <li>
+              <a href="/api/languages" target="_blank" rel="noopener" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>Supported 14+ Languages</span>
+                <span>/api/languages ↗</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/SamarthVarshney/realtime-language-translator" target="_blank" rel="noopener" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
+                <span>GitHub Source Repository</span>
+                <span>GitHub ↗</span>
+              </a>
+            </li>
+          </ul>
+
+          <div class="pt-2">
+            <a href="/app" class="btn-retro-primary w-full py-2.5 text-xs uppercase tracking-wider text-center">
+              <span>●</span>
+              <span>Launch Translator Studio</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Copyright & Back to Top Strip -->
+    <div class="border-t-2 border-[#141413] bg-[#C9C5B9] py-3.5 px-4 sm:px-8">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-[#2B2A28]">
+        <div>
+          <span>TR-01 FIELD INTERPRETER</span>
+          <span class="mx-2 text-[#8C8A84]">•</span>
+          <span>MIT LICENSE</span>
+          <span class="mx-2 text-[#8C8A84]">•</span>
+          <span>SAMARTH VARSHNEY</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="hidden sm:inline text-[#66645E]">WARM PAPER &amp; CARBON INK AESTHETIC</span>
+          <a href="#" class="font-bold text-[#141413] hover:text-[#FF4F00] flex items-center gap-1 transition-colors">
+            <span>↑</span>
+            <span>BACK TO TOP</span>
+          </a>
+        </div>
+      </div>
     </div>
   </footer>
 
