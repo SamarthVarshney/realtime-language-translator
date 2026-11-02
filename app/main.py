@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,7 @@ from app import __version__
 from app.config import (
     STATIC_DIR,
     SUPPORTED_LANGUAGES,
+    get_language_spec,
     normalize_lang_code,
     settings,
 )
@@ -37,10 +38,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger("realtime_translator")
 
+OPENAPI_TAGS = [
+    {
+        "name": "System & Telemetry",
+        "description": "Live pipeline health, LRU cache hit/miss counters, Faster-Whisper ASR hardware status, and VAD timing parameters.",
+    },
+    {
+        "name": "Language Registry",
+        "description": "Multilingual catalog mapping 14+ canonical language codes across BCP-47 locales, Whisper ISO codes, and Edge Neural TTS voices.",
+    },
+    {
+        "name": "Translation & Neural Speech",
+        "description": "Stateless REST endpoints for low-latency text translation (with 0ms LRU phrase caching) and in-memory Edge Neural MP3 synthesis.",
+    },
+]
+
 app = FastAPI(
-    title=settings.app_name,
+    title="TR-01 Field Interpreter — Real-Time Simultaneous Language Translator",
     version=__version__,
-    description="Zero-wait real-time simultaneous speech translation over full-duplex WebSockets.",
+    summary="Zero-wait full-duplex speech translation & neural TTS engine.",
+    description=(
+        "Real-time simultaneous speech translation engine powered by **FastAPI**, **Full-Duplex WebSockets** (`/ws/translate`), "
+        "**Faster-Whisper (`int8`)**, **Silero VAD**, **0ms LRU Phrase Caching**, and **Edge Neural TTS**."
+    ),
+    openapi_tags=OPENAPI_TAGS,
+    license_info={"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
+    docs_url=None,
+    redoc_url=None,
 )
 
 app.add_middleware(
@@ -55,9 +79,126 @@ STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
+# ==============================================================================
+# Pydantic OpenAPI 3.1 Schemas
+# ==============================================================================
+
+
+class TranslatorStatsSchema(BaseModel):
+    provider: str = Field(..., description="Active Machine Translation provider tier.", examples=["deep-translator"])
+    cache_size: int = Field(..., description="Current number of cached phrase pairs in memory.", examples=[42])
+    max_cache_size: int = Field(..., description="Maximum LRU phrase cache capacity.", examples=[1024])
+    cache_hits: int = Field(..., description="Cumulative 0ms LRU cache hits.", examples=[128])
+    cache_misses: int = Field(..., description="Cumulative upstream provider lookups.", examples=[42])
+
+
+class WhisperStatusSchema(BaseModel):
+    model_size: str = Field(..., description="Configured Faster-Whisper checkpoint size.", examples=["base"])
+    device: str = Field(..., description="Resolved inference hardware (`cpu` or `cuda`).", examples=["cpu"])
+    compute_type: str = Field(..., description="Quantization precision (`int8` or `float16`).", examples=["int8"])
+    loaded: bool = Field(..., description="Whether the Whisper model is currently warm in RAM.", examples=[False])
+    loading: bool = Field(..., description="Whether background model initialization is in progress.", examples=[False])
+    error: str | None = Field(default=None, description="Last model initialization error, if any.")
+
+
+class PipelineConfigSchema(BaseModel):
+    silence_threshold_ms: int = Field(..., description="Pause duration (ms) that commits an active clause.", examples=[800])
+    sliding_window_step_ms: int = Field(..., description="Interval (ms) between partial Faster-Whisper evaluations.", examples=[400])
+    translation_debounce_ms: int = Field(..., description="Debounce window (ms) coalescing rapid partial speech tokens.", examples=[150])
+    max_clause_words: int = Field(..., description="Word threshold triggering punctuation boundary splitting.", examples=[15])
+
+
+class HealthResponse(BaseModel):
+    status: str = Field(..., description="Overall service health (`ok`).", examples=["ok"])
+    version: str = Field(..., description="Semantic API version.", examples=["1.0.0"])
+    translator: TranslatorStatsSchema
+    whisper: WhisperStatusSchema
+    config: PipelineConfigSchema
+
+
+class LanguageItemSchema(BaseModel):
+    code: str = Field(..., description="Canonical language identifier.", examples=["es"])
+    name: str = Field(..., description="English display name.", examples=["Spanish"])
+    native_name: str = Field(..., description="Endonym / native language label.", examples=["Español"])
+    bcp47: str = Field(..., description="BCP-47 locale tag for browser SpeechRecognition.", examples=["es-ES"])
+    tts_voice: str = Field(..., description="Edge Neural TTS voice identifier.", examples=["es-ES-ElviraNeural"])
+    allow_as_target: bool = Field(..., description="True when selectable as a translation output language.", examples=[True])
+
+
+class LanguagesResponse(BaseModel):
+    languages: list[LanguageItemSchema]
+    default_source: str = Field(default="auto", examples=["auto"])
+    default_target: str = Field(default="es", examples=["es"])
+
+
+class TranslateRequest(BaseModel):
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        description="Source phrase or partial speech transcript to translate.",
+        examples=["Simultaneous translation streams live while you are still speaking."],
+    )
+    source_lang: str = Field(
+        default="auto",
+        description="Canonical source language code (or `auto` for instant script/lexicon detection).",
+        examples=["auto"],
+    )
+    target_lang: str = Field(
+        default="es",
+        description="Canonical target language code.",
+        examples=["es"],
+    )
+    bidirectional: bool = Field(
+        default=False,
+        description="Enable two-speaker across-the-table automatic language routing between `source_lang` and `target_lang`.",
+        examples=[False],
+    )
+    active_speaker: str = Field(
+        default="auto",
+        description="Optional speaker lock (`auto`, `A`, or `B`) when `bidirectional=True`.",
+        examples=["auto"],
+    )
+
+
+class TranslateResponse(BaseModel):
+    original_text: str = Field(..., examples=["Simultaneous translation streams live while you are still speaking."])
+    translated_text: str = Field(..., examples=["La traducción simultánea se transmite en vivo mientras sigues hablando."])
+    source_lang: str = Field(..., examples=["en"])
+    target_lang: str = Field(..., examples=["es"])
+    provider: str = Field(..., examples=["deep-translator"])
+    cached: bool = Field(..., description="True if served in 0ms from the in-memory LRU cache.", examples=[False])
+    latency_ms: int = Field(..., description="End-to-end translation latency in milliseconds.", examples=[78])
+    speaker: str = Field(..., description="Resolved speaker channel (`A` or `B`).", examples=["A"])
+
+
 class TTSRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=1000)
-    target_lang: str = Field(default="es")
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="Translated clause to synthesize into spoken neural audio.",
+        examples=["¡Hola! Bienvenido a la consola interactiva del intérprete TR-01."],
+    )
+    target_lang: str = Field(
+        default="es",
+        description="Canonical language code selecting the neural voice.",
+        examples=["es"],
+    )
+
+
+class TTSResponse(BaseModel):
+    target_lang: str = Field(..., examples=["es"])
+    voice: str = Field(..., description="Resolved Edge Neural TTS voice name.", examples=["es-ES-ElviraNeural"])
+    audio_base64: str | None = Field(
+        default=None,
+        description="Base64-encoded MP3 audio payload ready for WebAudio or HTML5 playback.",
+    )
+
+
+# ==============================================================================
+# HTML Pages & Custom Field-Recorder Documentation Views
+# ==============================================================================
 
 
 @app.get("/", include_in_schema=False)
@@ -79,8 +220,159 @@ async def serve_translator_app() -> FileResponse:
     return FileResponse(index_file)
 
 
-@app.get("/api/health")
+@app.get("/docs", include_in_schema=False)
+async def serve_interactive_docs() -> FileResponse:
+    docs_file = STATIC_DIR / "docs.html"
+    if not docs_file.exists():
+        raise HTTPException(status_code=404, detail="Documentation page docs.html not found.")
+    return FileResponse(docs_file)
+
+
+@app.get("/docs/swagger", include_in_schema=False)
+async def serve_themed_swagger_ui() -> HTMLResponse:
+    """Custom Field-Recorder Neo-Brutalist themed OpenAPI 3.1 Swagger UI."""
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TR-01 OpenAPI Swagger Explorer — Field Interpreter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    body {{
+      margin: 0;
+      background: #F4F3EF;
+      color: #141413;
+      font-family: 'Space Grotesk', sans-serif;
+    }}
+    .tr-topbar {{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #D8D5CC;
+      border-bottom: 2px solid #141413;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }}
+    .tr-topbar a {{
+      color: #141413;
+      text-decoration: none;
+      font-weight: 700;
+    }}
+    .tr-btn {{
+      padding: 6px 12px;
+      border: 2px solid #141413;
+      background: #FAF9F6;
+      box-shadow: 2px 2px 0 #141413;
+    }}
+    .tr-btn-orange {{
+      background: #FF4F00;
+      color: #FFFFFF !important;
+    }}
+    .swagger-ui {{ font-family: 'Space Grotesk', sans-serif !important; }}
+    .swagger-ui .topbar {{ display: none !important; }}
+    .swagger-ui .info .title {{
+      font-family: 'Space Grotesk', sans-serif !important;
+      color: #141413 !important;
+      font-weight: 700 !important;
+    }}
+    .swagger-ui .info .title small.version-stamp {{
+      background: #FF4F00 !important;
+      border: 1.5px solid #141413 !important;
+      border-radius: 0 !important;
+    }}
+    .swagger-ui .opblock-tag {{
+      border-bottom: 2px solid #141413 !important;
+      font-family: 'Space Grotesk', sans-serif !important;
+      color: #141413 !important;
+    }}
+    .swagger-ui .opblock {{
+      border: 2px solid #141413 !important;
+      border-radius: 0 !important;
+      box-shadow: 5px 5px 0 #141413 !important;
+      background: #FAF9F6 !important;
+      margin-bottom: 18px !important;
+    }}
+    .swagger-ui .opblock .opblock-summary-method {{
+      border-radius: 0 !important;
+      border: 1.5px solid #141413 !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      font-weight: 700 !important;
+    }}
+    .swagger-ui .opblock.opblock-get .opblock-summary-method {{
+      background: #141413 !important;
+      color: #F4F3EF !important;
+    }}
+    .swagger-ui .opblock.opblock-post .opblock-summary-method {{
+      background: #FF4F00 !important;
+      color: #FFFFFF !important;
+    }}
+    .swagger-ui .btn {{
+      border-radius: 0 !important;
+      border: 2px solid #141413 !important;
+      box-shadow: 2px 2px 0 #141413 !important;
+      font-family: 'JetBrains Mono', monospace !important;
+    }}
+    .swagger-ui .btn.execute {{
+      background: #FF4F00 !important;
+      color: #FFFFFF !important;
+    }}
+    .swagger-ui section.models {{
+      border: 2px solid #141413 !important;
+      border-radius: 0 !important;
+      background: #FAF9F6 !important;
+      box-shadow: 5px 5px 0 #141413 !important;
+    }}
+  </style>
+</head>
+<body>
+  <div class="tr-topbar">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <a href="/docs" class="tr-btn">← Interactive API &amp; WS Console</a>
+      <span>TR-01 OPENAPI 3.1 SWAGGER SPEC (v{__version__})</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="/openapi.json" target="_blank" class="tr-btn">openapi.json ↗</a>
+      <a href="/app" class="tr-btn tr-btn-orange">Launch Studio ↗</a>
+    </div>
+  </div>
+  <div id="swagger-ui" style="max-width:1080px;margin:0 auto;padding:16px 20px 60px;"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    window.ui = SwaggerUIBundle({{
+      url: '/openapi.json',
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      defaultModelsExpandDepth: 1,
+      docExpansion: 'list',
+    }});
+  </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html_content)
+
+
+# ==============================================================================
+# REST API Endpoints
+# ==============================================================================
+
+
+@app.get(
+    "/api/health",
+    response_model=HealthResponse,
+    tags=["System & Telemetry"],
+    summary="Inspect live system health, cache telemetry & Whisper status",
+)
 async def health_check() -> dict[str, Any]:
+    """Return real-time operational telemetry, LRU phrase cache hit statistics, Faster-Whisper device status, and VAD timing parameters."""
     return {
         "status": "ok",
         "version": __version__,
@@ -95,8 +387,14 @@ async def health_check() -> dict[str, Any]:
     }
 
 
-@app.get("/api/languages")
+@app.get(
+    "/api/languages",
+    response_model=LanguagesResponse,
+    tags=["Language Registry"],
+    summary="List all 14+ supported languages, BCP-47 locales & neural voices",
+)
 async def list_languages() -> dict[str, Any]:
+    """Return the complete multilingual voice and code registry used across ASR, Machine Translation, and Edge Neural TTS."""
     languages = [spec.to_dict() for spec in SUPPORTED_LANGUAGES.values()]
     return {
         "languages": languages,
@@ -105,13 +403,51 @@ async def list_languages() -> dict[str, Any]:
     }
 
 
-@app.post("/api/tts")
+@app.post(
+    "/api/translate",
+    response_model=TranslateResponse,
+    tags=["Translation & Neural Speech"],
+    summary="Translate text instantaneously with 0ms LRU phrase caching",
+)
+async def translate_text(req: TranslateRequest) -> dict[str, Any]:
+    """
+    Stateless REST translation endpoint backed by the same high-concurrency `TranslationService`
+    used in `/ws/translate`, including `<0.1ms` script/lexicon language detection, 0ms LRU caching,
+    and automatic two-speaker Bi-Directional routing.
+    """
+    result = await translator_service.translate(
+        text=req.text,
+        source_lang=req.source_lang,
+        target_lang=req.target_lang,
+        bidirectional=req.bidirectional,
+        active_speaker=req.active_speaker,
+    )
+    return {
+        "original_text": result.original_text,
+        "translated_text": result.translated_text,
+        "source_lang": result.source_lang,
+        "target_lang": result.target_lang,
+        "provider": result.provider,
+        "cached": result.cached,
+        "latency_ms": result.latency_ms,
+        "speaker": result.speaker,
+    }
+
+
+@app.post(
+    "/api/tts",
+    response_model=TTSResponse,
+    tags=["Translation & Neural Speech"],
+    summary="Synthesize Edge Neural TTS audio as Base64 MP3",
+)
 async def generate_tts(req: TTSRequest) -> dict[str, Any]:
-    """On-demand neural TTS endpoint for replaying historical transcript cards."""
+    """On-demand neural Text-to-Speech endpoint generating an in-memory Base64 MP3 stream for the requested target language."""
     target = normalize_lang_code(req.target_lang, fallback="es")
+    spec = get_language_spec(target, fallback="es")
     audio_b64 = await tts_engine.synthesize_base64(req.text, target)
     return {
         "target_lang": target,
+        "voice": spec.tts_voice,
         "audio_base64": audio_b64,
     }
 

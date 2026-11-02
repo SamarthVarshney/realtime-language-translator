@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --paper: #F4F3EF;
@@ -17,11 +17,17 @@
       --ink: #141413;
       --orange: #FF4F00;
       --muted: #8C8A84;
-      --font-speech: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      --font-speech: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-ui: 'Plus Jakarta Sans', 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Segoe UI Mono', monospace;
     }
 
-    * { box-sizing: border-box; }
+    *, html, body, button, input, select, textarea {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
 
     body {
       margin: 0;
@@ -31,6 +37,7 @@
     }
 
     .font-speech { font-family: var(--font-speech); }
+    .font-ui { font-family: var(--font-ui); }
     .font-mono { font-family: var(--font-mono); }
 
     /* Retro OS Halftone Lower Canvas (matching the textured lower half of the Mac inspiration) */
@@ -87,8 +94,9 @@
       color: #FFFFFF;
       border: 2px solid var(--ink);
       box-shadow: 4px 4px 0 var(--ink);
-      font-family: var(--font-mono);
+      font-family: var(--font-ui);
       font-weight: 700;
+      letter-spacing: 0.04em;
       transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.12s ease;
       cursor: pointer;
     }
@@ -113,8 +121,9 @@
       color: var(--ink);
       border: 2px solid var(--ink);
       box-shadow: 3px 3px 0 var(--ink);
-      font-family: var(--font-mono);
-      font-weight: 600;
+      font-family: var(--font-ui);
+      font-weight: 700;
+      letter-spacing: 0.03em;
       transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.14s ease, color 0.14s ease;
       cursor: pointer;
     }
@@ -191,7 +200,7 @@
 
     /* Language Pill Selector in Live Sandbox */
     .sandbox-lang-pill {
-      font-family: var(--font-mono);
+      font-family: var(--font-ui);
       font-size: 11px;
       font-weight: 700;
       padding: 5px 10px;
@@ -221,7 +230,7 @@
       <nav class="flex items-center gap-5 sm:gap-7 text-xs sm:text-[13px] font-semibold">
         <a href="/" class="flex items-center gap-2 group" aria-label="TR-01 Field Interpreter Home">
           <span class="w-7 h-7 bg-[#FAF9F6] border-2 border-[#141413] flex items-center justify-center shadow-[2px_2px_0_#141413] group-hover:bg-[#FF4F00] group-hover:text-white transition-colors">
-            <span class="font-mono text-[10px] font-bold">TR</span>
+            <span class="font-ui text-xs font-bold">TR</span>
           </span>
         </a>
         <a href="#modules" class="hover:text-[#FF4F00] transition-colors">Modules</a>
@@ -231,7 +240,7 @@
       </nav>
 
       <!-- Right Status & Instant Try Link -->
-      <div class="flex items-center gap-3 font-mono text-[11px]">
+      <div class="flex items-center gap-3 font-ui text-xs">
         <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#FAF9F6] border border-[#141413] font-semibold">
           <span class="w-2 h-2 rounded-full bg-[#FF4F00] orange-beacon"></span>
           <span>WS ENGINE READY</span>
@@ -252,7 +261,7 @@
 
         <!-- Left Hero Copy & Primary "Try" CTA -->
         <div class="md:col-span-7 space-y-5">
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-[#FAF9F6] border-2 border-[#141413] shadow-[2px_2px_0_#141413] font-mono text-[11px] font-bold uppercase tracking-wider">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[2px_2px_0_#141413] font-ui text-xs font-bold uppercase tracking-wider">
             <span class="w-2 h-2 rounded-full bg-[#FF4F00]"></span>
             <span>UNIT TR-01 // ZERO-WAIT SIMULTANEOUS SPEECH</span>
           </div>
@@ -284,7 +293,7 @@
           </div>
 
           <!-- Micro Metrics Row -->
-          <div class="pt-3 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] text-[#8C8A84]">
+          <div class="pt-3 flex flex-wrap items-center gap-x-5 gap-y-2 font-ui text-xs text-[#8C8A84] tracking-wide">
             <span><strong class="text-[#141413]">&lt;150 MS</strong> HYBRID STREAM</span>
             <span>•</span>
             <span><strong class="text-[#141413]">16 KHZ</strong> FASTER-WHISPER</span>
@@ -297,7 +306,7 @@
         <div class="md:col-span-5 flex flex-col items-center justify-center">
           <div class="w-full max-w-[360px] relative">
             <!-- Dynamic Morphing Translation Speech Tag -->
-            <div class="mb-2 mx-auto w-fit px-3.5 py-1.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[3px_3px_0_#141413] font-mono text-xs font-bold flex items-center gap-2">
+            <div class="mb-2 mx-auto w-fit px-3.5 py-1.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[3px_3px_0_#141413] font-ui text-xs font-bold flex items-center gap-2">
               <span id="hero-Cycling-Lang" class="px-1.5 py-0.5 bg-[#FF4F00] text-white text-[10px]">ES</span>
               <span id="hero-Cycling-Text" class="text-[#141413]">"¡Habla sin esperar!"</span>
             </div>
@@ -385,25 +394,25 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-8 relative z-10">
       <div class="mb-2.5 flex items-center justify-between">
         <h2 class="font-speech text-lg font-bold text-[#141413]">Quick launch</h2>
-        <span class="font-mono text-[11px] text-[#8C8A84] hidden sm:inline">CLICK ANY MODE TO ENTER WORKING STUDIO</span>
+        <span class="font-ui text-xs text-[#8C8A84] hidden sm:inline">CLICK ANY MODE TO ENTER WORKING STUDIO</span>
       </div>
 
       <div class="quick-links-grid grid grid-cols-2 md:grid-cols-4 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#141413]">
         <a href="/app" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm border-r-2 md:border-r-0 border-[#141413]">
           <span class="font-semibold">Try Live Studio</span>
-          <span class="ql-arrow font-mono font-bold text-base">↗</span>
+          <span class="ql-arrow font-ui font-bold text-base">↗</span>
         </a>
         <a href="/app?mode=twoway" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm">
           <span class="font-semibold">Two-Way Mic</span>
-          <span class="ql-arrow font-mono font-bold text-base">↗</span>
+          <span class="ql-arrow font-ui font-bold text-base">↗</span>
         </a>
         <a href="/app?engine=whisper" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm border-r-2 md:border-r-0 border-[#141413]">
           <span class="font-semibold">Whisper 16kHz</span>
-          <span class="ql-arrow font-mono font-bold text-base">↗</span>
+          <span class="ql-arrow font-ui font-bold text-base">↗</span>
         </a>
         <a href="#live-sandbox" class="quick-link-cell px-4 py-3.5 flex items-center justify-between font-medium text-sm">
           <span class="font-semibold">Live Sandbox</span>
-          <span class="ql-arrow font-mono font-bold text-base">↘</span>
+          <span class="ql-arrow font-ui font-bold text-base">↘</span>
         </a>
       </div>
     </div>
@@ -419,10 +428,10 @@
       <section id="live-sandbox" class="space-y-4">
         <div class="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <span class="font-mono text-[11px] font-bold uppercase tracking-widest text-[#FF4F00]">NO-MIC INSTANT DEMO</span>
+            <span class="font-ui text-xs font-bold uppercase tracking-widest text-[#FF4F00]">NO-MIC INSTANT DEMO</span>
             <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-[#141413]">Test the Live Engine</h2>
           </div>
-          <a href="/app" class="font-mono text-xs font-bold underline decoration-[#FF4F00] decoration-2 underline-offset-4 hover:text-[#FF4F00]">
+          <a href="/app" class="font-ui text-xs font-bold underline decoration-[#FF4F00] decoration-2 underline-offset-4 hover:text-[#FF4F00]">
             Switch to Full Microphone Studio →
           </a>
         </div>
@@ -434,15 +443,15 @@
               <span class="win-dot bg-[#FF4F00]"></span>
               <span class="win-dot"></span>
             </div>
-            <span class="font-mono text-[11px] font-semibold text-[#141413]">ws://localhost:8000/ws/translate — live-simulator.ws</span>
-            <span id="sandbox-ws-tag" class="font-mono text-[10px] font-bold px-2 py-0.5 bg-[#141413] text-[#F4F3EF]">CONNECTING</span>
+            <span class="font-ui text-xs font-bold text-[#141413] tracking-wide">ws://localhost:8000/ws/translate — live-simulator.ws</span>
+            <span id="sandbox-ws-tag" class="font-ui text-[11px] font-bold px-2.5 py-1 bg-[#141413] text-[#F4F3EF] tracking-wider">CONNECTING</span>
           </div>
 
           <div class="p-5 sm:p-7 space-y-5">
             <!-- Target Language Pills + Stream Trigger -->
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="flex flex-wrap items-center gap-1.5">
-                <span class="font-mono text-[11px] font-bold text-[#8C8A84] uppercase mr-1">TARGET:</span>
+                <span class="font-ui text-xs font-bold text-[#8C8A84] uppercase mr-1">TARGET:</span>
                 <button type="button" data-lang="es" class="sandbox-lang-pill active">ES · Español</button>
                 <button type="button" data-lang="hi" class="sandbox-lang-pill">HI · हिन्दी</button>
                 <button type="button" data-lang="fr" class="sandbox-lang-pill">FR · Français</button>
@@ -451,7 +460,7 @@
                 <button type="button" data-lang="ar" class="sandbox-lang-pill">AR · العربية</button>
               </div>
 
-              <div class="font-mono text-[11px] text-[#8C8A84]">
+              <div class="font-ui text-xs text-[#8C8A84]">
                 LATENCY: <strong id="sandbox-latency" class="text-[#141413]">-- MS</strong>
               </div>
             </div>
@@ -459,7 +468,7 @@
             <!-- Dual Preview Display (Simulating While-Speaking Stream) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="p-4 bg-[#F4F3EF] border-2 border-[#141413]">
-                <div class="flex items-center justify-between font-mono text-[10px] text-[#8C8A84] mb-2">
+                <div class="flex items-center justify-between font-ui text-[11px] text-[#8C8A84] mb-2">
                   <span class="font-bold text-[#141413]">CH-01 // SIMULATED LIVE SPEECH</span>
                   <span id="sandbox-state-pill" class="uppercase text-[#FF4F00] font-bold">READY</span>
                 </div>
@@ -469,7 +478,7 @@
               </div>
 
               <div class="p-4 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413]">
-                <div class="flex items-center justify-between font-mono text-[10px] text-[#8C8A84] mb-2">
+                <div class="flex items-center justify-between font-ui text-[11px] text-[#8C8A84] mb-2">
                   <span class="font-bold text-[#FF4F00]">CH-02 // SIMULTANEOUS OUTPUT</span>
                   <span id="sandbox-tgt-code" class="uppercase text-[#F4F3EF] font-bold">ES</span>
                 </div>
@@ -515,7 +524,7 @@
                 <span class="win-dot"></span>
                 <span class="win-dot"></span>
               </div>
-              <span class="font-mono text-[11px] font-semibold">01-while-speaking-engine.ws</span>
+              <span class="font-ui text-xs font-bold text-[#141413] tracking-wide">01-while-speaking-engine.ws</span>
               <span class="w-5"></span>
             </div>
             <!-- Graphic Banner -->
@@ -552,7 +561,7 @@
                 <span class="win-dot"></span>
                 <span class="win-dot"></span>
               </div>
-              <span class="font-mono text-[11px] font-semibold">02-dual-asr-whisper.py</span>
+              <span class="font-ui text-xs font-bold text-[#141413] tracking-wide">02-dual-asr-whisper.py</span>
               <span class="w-5"></span>
             </div>
             <!-- Graphic Banner -->
@@ -589,7 +598,7 @@
                 <span class="win-dot"></span>
                 <span class="win-dot"></span>
               </div>
-              <span class="font-mono text-[11px] font-semibold">03-two-way-conversation.dsp</span>
+              <span class="font-ui text-xs font-bold text-[#141413] tracking-wide">03-two-way-conversation.dsp</span>
               <span class="w-5"></span>
             </div>
             <!-- Graphic Banner -->
@@ -623,7 +632,7 @@
                 <span class="win-dot"></span>
                 <span class="win-dot"></span>
               </div>
-              <span class="font-mono text-[11px] font-semibold">04-neural-tts-ducking.wav</span>
+              <span class="font-ui text-xs font-bold text-[#141413] tracking-wide">04-neural-tts-ducking.wav</span>
               <span class="w-5"></span>
             </div>
             <!-- Graphic Banner -->
@@ -668,12 +677,12 @@
             <span class="win-dot"></span>
             <span class="win-dot"></span>
           </div>
-          <span class="font-mono text-[11px] font-semibold">system-pipeline-spec.md</span>
-          <span class="font-mono text-[10px] text-[#8C8A84]">0MS LRU CACHE</span>
+          <span class="font-ui text-xs font-bold text-[#141413] tracking-wide">system-pipeline-spec.md</span>
+          <span class="font-ui text-xs font-bold text-[#8C8A84]">0MS LRU CACHE</span>
         </div>
 
         <div class="p-6 sm:p-8 space-y-7">
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 font-mono text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 font-ui text-xs">
             <div class="p-3.5 bg-[#F4F3EF] border-2 border-[#141413]">
               <div class="text-[#FF4F00] font-bold mb-1">01 // CAPTURE</div>
               <div class="text-[#141413] font-semibold">16kHz AudioWorklet</div>
@@ -699,7 +708,7 @@
           <!-- Instant Click-to-Launch Language Grid -->
           <div id="languages" class="pt-2 border-t-2 border-[#DCD9D0]">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <span class="font-mono text-xs font-bold uppercase tracking-wider text-[#141413]">
+              <span class="font-ui text-xs font-bold uppercase tracking-wider text-[#141413]">
                 CLICK ANY TARGET LANGUAGE TO LAUNCH WORKING MODEL DIRECTLY:
               </span>
             </div>
@@ -886,8 +895,8 @@
           <ul class="space-y-2 text-xs">
             <li>
               <a href="/docs" target="_blank" rel="noopener" class="flex items-center justify-between text-[#2B2A28] hover:text-[#FF4F00] transition-colors font-medium">
-                <span>Interactive Swagger Docs</span>
-                <span>/docs ↗</span>
+                <span>Interactive API &amp; WS Docs</span>
+                <span>API Console ↗</span>
               </a>
             </li>
             <li>
@@ -991,7 +1000,7 @@
 
         ws.onopen = () => {
           wsTag.textContent = "WS ONLINE";
-          wsTag.className = "font-mono text-[10px] font-bold px-2 py-0.5 bg-[#FF4F00] text-white";
+          wsTag.className = "font-ui text-[11px] font-bold px-2.5 py-1 bg-[#FF4F00] text-white tracking-wider";
           sendConfig();
         };
 
@@ -1014,7 +1023,7 @@
 
         ws.onclose = () => {
           wsTag.textContent = "OFFLINE";
-          wsTag.className = "font-mono text-[10px] font-bold px-2 py-0.5 bg-[#8C8A84] text-white";
+          wsTag.className = "font-ui text-[11px] font-bold px-2.5 py-1 bg-[#8C8A84] text-white tracking-wider";
         };
       }
 

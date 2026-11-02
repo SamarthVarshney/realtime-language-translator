@@ -23,12 +23,16 @@
   --border-hairline: #DCD9D0;
   --border-strong: #C6C3B8;
 
-  --font-speech: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-speech: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-ui: 'Plus Jakarta Sans', 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Segoe UI Mono', monospace;
 }
 
-* {
+*, html, body, button, input, select, textarea {
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -42,6 +46,10 @@ body {
 
 .font-speech {
   font-family: var(--font-speech);
+}
+
+.font-ui {
+  font-family: var(--font-ui);
 }
 
 .font-mono {
@@ -97,7 +105,9 @@ body {
    ========================================================================== */
 
 .hw-btn {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.03em;
   background: #FFFFFF;
   color: var(--ink-carbon);
   border: 1.5px solid var(--ink-carbon);
@@ -118,7 +128,9 @@ body {
 }
 
 .hw-btn-orange {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.03em;
   background: var(--accent-orange);
   color: #FFFFFF;
   border: 1.5px solid var(--ink-carbon);

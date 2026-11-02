@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TR-01 API &amp; Protocol Documentation — Real-Time Simultaneous Language Translator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #F4F3EF;
+      --paper-card: #FAF9F6;
+      --chrome: #D8D5CC;
+      --halftone-bg: #E7E4DC;
+      --ink: #141413;
+      --orange: #FF4F00;
+      --muted: #8C8A84;
+      --font-speech: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-ui: 'Plus Jakarta Sans', 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Segoe UI Mono', monospace;
+    }
+
+    *, html, body, button, input, select, textarea {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-speech);
+    }
+
+    .font-speech { font-family: var(--font-speech); }
+    .font-ui { font-family: var(--font-ui); }
+    .font-mono { font-family: var(--font-mono); }
+
+    .halftone-surface {
+      background-color: var(--halftone-bg);
+      background-image: radial-gradient(#C4C0B5 1.15px, transparent 1.15px);
+      background-size: 6px 6px;
+    }
+
+    .retro-window {
+      background: var(--paper-card);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+
+    .window-titlebar {
+      background: var(--chrome);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .win-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      border: 1.8px solid var(--ink);
+      background: var(--paper-card);
+      display: inline-block;
+    }
+
+    .btn-retro-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: var(--orange);
+      color: #FFFFFF;
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      font-family: var(--font-ui);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.12s ease;
+      cursor: pointer;
+    }
+
+    .btn-retro-primary:hover:not(:disabled) {
+      filter: brightness(1.05);
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .btn-retro-primary:active:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    .btn-retro-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-retro-neutral {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      background: var(--chrome);
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      font-family: var(--font-ui);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.14s ease, color 0.14s ease;
+      cursor: pointer;
+    }
+
+    .btn-retro-neutral:hover:not(:disabled) {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .btn-retro-neutral:active:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    .quick-links-grid {
+      background: var(--chrome);
+      border: 2px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .quick-link-cell {
+      transition: background-color 0.14s ease, color 0.14s ease;
+    }
+
+    .quick-link-cell:hover {
+      background-color: var(--orange);
+      color: #FFFFFF;
+    }
+
+    @keyframes pulseBeacon {
+      0% { box-shadow: 0 0 0 0 rgba(255, 79, 0, 0.65); }
+      70% { box-shadow: 0 0 0 7px rgba(255, 79, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 79, 0, 0); }
+    }
+
+    .orange-beacon { animation: pulseBeacon 1.6s infinite; }
+
+    /* Custom Scrollbars for CRT Code Terminals */
+    .crt-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+    .crt-scroll::-webkit-scrollbar-track { background: #1E1E1C; }
+    .crt-scroll::-webkit-scrollbar-thumb { background: #4A4945; border: 1px solid #141413; }
+    .crt-scroll::-webkit-scrollbar-thumb:hover { background: #FF4F00; }
+
+    .snippet-tab.active {
+      background: #FF4F00;
+      color: #FFFFFF;
+      box-shadow: 2px 2px 0 #141413;
+    }
+  </style>
+</head>
+<body class="selection:bg-[#FF4F00]/20 selection:text-[#141413]">
+
+  <!-- ===================================================================== -->
+  <!-- 1. RETRO OS TOP NAVIGATION BAR                                        -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 w-full bg-[#D8D5CC] border-b-2 border-[#141413]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 h-12 flex items-center justify-between gap-4">
+      <nav class="flex items-center gap-4 sm:gap-6 text-xs sm:text-[13px] font-semibold">
+        <a href="/" class="flex items-center gap-2 group" title="Back to Landing Page">
+          <span class="w-7 h-7 bg-[#FAF9F6] border-2 border-[#141413] flex items-center justify-center shadow-[2px_2px_0_#141413] group-hover:bg-[#FF4F00] group-hover:text-white transition-colors">
+            <span class="font-mono text-[10px] font-bold">TR</span>
+          </span>
+          <span class="hidden sm:inline font-ui text-xs font-bold">← HOME</span>
+        </a>
+        <span class="text-[#8C8A84]">|</span>
+        <a href="#rest-explorer" class="hover:text-[#FF4F00] transition-colors">REST Endpoints</a>
+        <a href="#ws-protocol" class="hover:text-[#FF4F00] transition-colors">WS Protocol</a>
+        <a href="#ws-debugger" class="hover:text-[#FF4F00] transition-colors hidden md:inline">Live WS Console</a>
+        <a href="#schemas" class="hover:text-[#FF4F00] transition-colors hidden lg:inline">Schemas</a>
+        <a href="#snippets" class="hover:text-[#FF4F00] transition-colors hidden lg:inline">Code</a>
+      </nav>
+
+      <div class="flex items-center gap-2.5 font-ui text-xs">
+        <span class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#FAF9F6] border border-[#141413] font-semibold">
+          <span id="nav-health-dot" class="w-2 h-2 rounded-full bg-[#FF4F00] orange-beacon"></span>
+          <span id="nav-health-text">OAS 3.1 · v1.0.0</span>
+        </span>
+        <a href="/docs/swagger" class="px-2.5 py-1 bg-[#FAF9F6] hover:bg-[#141413] hover:text-[#F4F3EF] font-bold border border-[#141413] transition-colors" title="Switch to classic OpenAPI Swagger UI">
+          Swagger UI
+        </a>
+        <a href="/openapi.json" target="_blank" rel="noopener" class="hidden sm:inline-block px-2.5 py-1 bg-[#FAF9F6] hover:bg-[#141413] hover:text-[#F4F3EF] font-bold border border-[#141413] transition-colors">
+          openapi.json ↗
+        </a>
+        <a href="/app" class="px-3 py-1 bg-[#FF4F00] text-white hover:bg-[#141413] font-bold uppercase tracking-wider border border-[#141413] transition-colors">
+          Launch Studio ↗
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 2. TECHNICAL MANUAL HEADER & LIVE TELEMETRY READOUT                   -->
+  <!-- ===================================================================== -->
+  <section class="bg-[#F4F3EF] pt-9 sm:pt-12 pb-14 sm:pb-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 space-y-7">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div class="space-y-3.5 max-w-3xl">
+          <div class="inline-flex flex-wrap items-center gap-2 px-3.5 py-1.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[2px_2px_0_#141413] font-ui text-xs font-bold uppercase tracking-wider">
+            <span class="px-1.5 py-0.5 bg-[#FF4F00] text-white text-[10px]">OAS 3.1</span>
+            <span>TR-01 DEVELOPER REFERENCE // REST + FULL-DUPLEX WEBSOCKETS</span>
+          </div>
+
+          <h1 class="font-speech text-4xl sm:text-5xl font-bold tracking-tight leading-[1.06] text-[#141413]">
+            API &amp; Streaming Protocol<span class="text-[#FF4F00]">.</span>
+          </h1>
+
+          <p class="text-sm sm:text-base text-[#2B2A28] leading-relaxed">
+            Execute live REST calls directly against the running Python engine, audition synthesized neural voices in-browser, and inspect real-time full-duplex WebSocket packets on <code class="font-mono text-xs px-1.5 py-0.5 bg-[#FAF9F6] border border-[#141413]">/ws/translate</code>.
+          </p>
+        </div>
+
+        <!-- Quick Base URL Copy Box -->
+        <div class="retro-window p-4 space-y-2.5 font-mono text-xs shrink-0 lg:min-w-[340px]">
+          <div class="flex items-center justify-between text-[10px] text-[#8C8A84] font-bold uppercase">
+            <span>ACTIVE BASE ENDPOINTS</span>
+            <span class="text-emerald-700 font-bold">● CORS ENABLED</span>
+          </div>
+          <div class="flex items-center justify-between gap-3 px-2.5 py-1.5 bg-[#F4F3EF] border border-[#141413]">
+            <span class="truncate"><strong class="text-[#FF4F00]">HTTP</strong> <span id="base-http-url">http://127.0.0.1:8000</span></span>
+            <button type="button" data-copy-target="base-http-url" class="copy-url-btn px-2 py-0.5 bg-[#D8D5CC] border border-[#141413] text-[10px] font-bold hover:bg-[#141413] hover:text-white">COPY</button>
+          </div>
+          <div class="flex items-center justify-between gap-3 px-2.5 py-1.5 bg-[#141413] text-[#F4F3EF] border border-[#141413]">
+            <span class="truncate"><strong class="text-[#FF4F00]">WS</strong> <span id="base-ws-url">ws://127.0.0.1:8000/ws/translate</span></span>
+            <button type="button" data-copy-target="base-ws-url" class="copy-url-btn px-2 py-0.5 bg-[#FF4F00] text-white border border-[#141413] text-[10px] font-bold hover:bg-white hover:text-[#141413]">COPY</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Telemetry Bar Auto-Populated from GET /api/health -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
+        <div class="p-3.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[3px_3px_0_#141413]">
+          <div class="text-[10px] text-[#8C8A84] font-bold uppercase">ENGINE HEALTH</div>
+          <div id="stat-health" class="text-sm font-bold text-[#141413] mt-1">PROBING...</div>
+          <div id="stat-version" class="text-[11px] text-[#8C8A84] mt-0.5">FastAPI Async</div>
+        </div>
+        <div class="p-3.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[3px_3px_0_#141413]">
+          <div class="text-[10px] text-[#8C8A84] font-bold uppercase">MT PROVIDER &amp; LRU CACHE</div>
+          <div id="stat-mt" class="text-sm font-bold text-[#141413] mt-1">--</div>
+          <div id="stat-cache" class="text-[11px] text-[#FF4F00] font-semibold mt-0.5">0 hits / 0 cached</div>
+        </div>
+        <div class="p-3.5 bg-[#FAF9F6] border-2 border-[#141413] shadow-[3px_3px_0_#141413]">
+          <div class="text-[10px] text-[#8C8A84] font-bold uppercase">FASTER-WHISPER ASR</div>
+          <div id="stat-whisper" class="text-sm font-bold text-[#141413] mt-1">--</div>
+          <div id="stat-whisper-state" class="text-[11px] text-[#8C8A84] mt-0.5">16 kHz Float32 PCM</div>
+        </div>
+        <div class="p-3.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] shadow-[3px_3px_0_#FF4F00]">
+          <div class="flex items-center justify-between text-[10px] text-[#FF4F00] font-bold uppercase">
+            <span>STREAM TIMING</span>
+            <button id="refresh-telemetry-btn" type="button" class="underline hover:text-white">↻ SYNC</button>
+          </div>
+          <div id="stat-timing" class="text-sm font-bold text-white mt-1">150ms Debounce</div>
+          <div id="stat-vad" class="text-[11px] text-[#D8D5CC] mt-0.5">800ms VAD Lock · 15w Split</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 3. STRADDLING QUICK-JUMP BRUTALIST BAR                                -->
+  <!-- ===================================================================== -->
+  <div class="relative">
+    <div class="absolute left-0 right-0 bottom-1/2 translate-y-3 border-b-2 border-[#141413] pointer-events-none"></div>
+    <div class="absolute inset-x-0 bottom-0 h-1/2 halftone-surface -z-10"></div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 relative z-10">
+      <div class="quick-links-grid grid grid-cols-2 md:grid-cols-4 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#141413] font-mono text-xs">
+        <a href="#rest-explorer" class="quick-link-cell px-4 py-3 flex items-center justify-between font-bold border-r-2 md:border-r-0 border-[#141413]">
+          <span>01 // REST API (4)</span>
+          <span>↘</span>
+        </a>
+        <a href="#ws-protocol" class="quick-link-cell px-4 py-3 flex items-center justify-between font-bold">
+          <span>02 // WS PROTOCOL</span>
+          <span>↘</span>
+        </a>
+        <a href="#ws-debugger" class="quick-link-cell px-4 py-3 flex items-center justify-between font-bold border-r-2 md:border-r-0 border-[#141413]">
+          <span>03 // LIVE WS CONSOLE</span>
+          <span>↘</span>
+        </a>
+        <a href="#schemas" class="quick-link-cell px-4 py-3 flex items-center justify-between font-bold">
+          <span>04 // OAS 3.1 SCHEMAS</span>
+          <span>↘</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 4. MAIN INTERACTIVE DOCUMENTATION WORKSPACE                           -->
+  <!-- ===================================================================== -->
+  <main class="halftone-surface pt-14 pb-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 space-y-16">
+
+      <!-- ================================================================= -->
+      <!-- SECTION A: INTERACTIVE REST ENDPOINTS EXPLORER                    -->
+      <!-- ================================================================= -->
+      <section id="rest-explorer" class="space-y-6">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-widest text-[#FF4F00]">LIVE HTTP TEST RUNNER</span>
+            <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-[#141413]">REST API Endpoints</h2>
+          </div>
+          <span class="font-mono text-xs text-[#66645E]">CLICK "EXECUTE" ON ANY CARD TO QUERY THE LIVE SERVER</span>
+        </div>
+
+        <div class="space-y-7">
+
+          <!-- ENDPOINT 1: POST /api/translate -->
+          <article class="retro-window overflow-hidden">
+            <div class="window-titlebar px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="win-dot bg-[#FF4F00]"></span>
+                <span class="win-dot"></span>
+                <span class="font-mono text-[11px] font-bold ml-1">01-translate-phrase.http</span>
+              </div>
+              <span class="font-mono text-[10px] font-bold uppercase px-2 py-0.5 bg-[#FAF9F6] border border-[#141413]">TAG: Translation &amp; Neural Speech</span>
+            </div>
+
+            <div class="p-5 sm:p-6 space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#E5E2D9] pb-4">
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="px-3 py-1 bg-[#FF4F00] text-white border-2 border-[#141413] font-mono text-xs font-bold shadow-[2px_2px_0_#141413]">POST</span>
+                  <code class="font-mono text-base sm:text-lg font-bold text-[#141413]">/api/translate</code>
+                  <span class="text-sm text-[#4A4945]">— Zero-wait phrase translation with 0ms LRU cache &amp; Bi-Directional routing</span>
+                </div>
+                <span id="badge-translate-status" class="font-mono text-[11px] font-bold px-2.5 py-1 bg-[#F4F3EF] border border-[#141413]">READY</span>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <!-- Request Controls -->
+                <div class="lg:col-span-6 space-y-3.5">
+                  <div class="font-mono text-[11px] font-bold uppercase text-[#141413]">REQUEST BODY (<code class="text-[#FF4F00]">application/json</code>)</div>
+
+                  <div>
+                    <label class="block font-mono text-[11px] font-semibold text-[#4A4945] mb-1">text *</label>
+                    <textarea id="tr-text" rows="2" class="w-full px-3 py-2 bg-white border-2 border-[#141413] font-speech text-sm focus:outline-none focus:border-[#FF4F00]">Simultaneous translation streams live while you are still speaking.</textarea>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block font-mono text-[11px] font-semibold text-[#4A4945] mb-1">source_lang</label>
+                      <select id="tr-src" class="w-full px-2.5 py-2 bg-white border-2 border-[#141413] font-mono text-xs focus:outline-none focus:border-[#FF4F00]">
+                        <option value="auto" selected>auto (Auto-Detect)</option>
+                        <option value="en">en (English)</option>
+                        <option value="es">es (Spanish)</option>
+                        <option value="hi">hi (Hindi)</option>
+                        <option value="fr">fr (French)</option>
+                        <option value="de">de (German)</option>
+                        <option value="zh-CN">zh-CN (Mandarin)</option>
+                        <option value="ja">ja (Japanese)</option>
+                        <option value="ar">ar (Arabic)</option>
+                        <option value="pt">pt (Portuguese)</option>
+                        <option value="ru">ru (Russian)</option>
+                        <option value="ko">ko (Korean)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block font-mono text-[11px] font-semibold text-[#4A4945] mb-1">target_lang</label>
+                      <select id="tr-tgt" class="w-full px-2.5 py-2 bg-white border-2 border-[#141413] font-mono text-xs focus:outline-none focus:border-[#FF4F00]">
+                        <option value="es" selected>es (Spanish · Español)</option>
+                        <option value="hi">hi (Hindi · हिन्दी)</option>
+                        <option value="fr">fr (French · Français)</option>
+                        <option value="de">de (German · Deutsch)</option>
+                        <option value="ja">ja (Japanese · 日本語)</option>
+                        <option value="zh-CN">zh-CN (Mandarin · 中文)</option>
+                        <option value="ar">ar (Arabic · العربية)</option>
+                        <option value="pt">pt (Portuguese · Português)</option>
+                        <option value="ru">ru (Russian · Русский)</option>
+                        <option value="ko">ko (Korean · 한국어)</option>
+                        <option value="it">it (Italian · Italiano)</option>
+                        <option value="en">en (English)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <label class="inline-flex items-center gap-2 font-mono text-xs cursor-pointer select-none">
+                    <input id="tr-bidir" type="checkbox" class="w-4 h-4 accent-[#FF4F00]" />
+                    <span><strong>bidirectional</strong> — Auto-flip A⇄B between source &amp; target speaker</span>
+                  </label>
+
+                  <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                    <button id="btn-exec-translate" type="button" class="btn-retro-primary px-4 py-2 text-xs uppercase tracking-wider">
+                      ▶ Execute POST /api/translate
+                    </button>
+                    <button id="btn-curl-translate" type="button" class="btn-retro-neutral px-3 py-2 text-xs">
+                      Copy cURL
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Live Response Terminal -->
+                <div class="lg:col-span-6 flex flex-col">
+                  <div class="flex items-center justify-between font-mono text-[11px] font-bold uppercase mb-1.5">
+                    <span>LIVE SERVER RESPONSE</span>
+                    <span id="meta-translate-time" class="text-[#8C8A84]">Run twice to test 0ms LRU cache ⚡</span>
+                  </div>
+                  <pre id="out-translate" class="crt-scroll flex-1 min-h-[190px] max-h-[260px] overflow-auto p-3.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] font-mono text-xs leading-relaxed">{
+  "tip": "Click 'Execute POST /api/translate' to run a live translation request."
+}</pre>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- ENDPOINT 2: POST /api/tts -->
+          <article class="retro-window overflow-hidden">
+            <div class="window-titlebar px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="win-dot bg-[#FF4F00]"></span>
+                <span class="win-dot"></span>
+                <span class="font-mono text-[11px] font-bold ml-1">02-neural-tts-synthesizer.http</span>
+              </div>
+              <span class="font-mono text-[10px] font-bold uppercase px-2 py-0.5 bg-[#FAF9F6] border border-[#141413]">TAG: Translation &amp; Neural Speech</span>
+            </div>
+
+            <div class="p-5 sm:p-6 space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#E5E2D9] pb-4">
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="px-3 py-1 bg-[#FF4F00] text-white border-2 border-[#141413] font-mono text-xs font-bold shadow-[2px_2px_0_#141413]">POST</span>
+                  <code class="font-mono text-base sm:text-lg font-bold text-[#141413]">/api/tts</code>
+                  <span class="text-sm text-[#4A4945]">— In-memory Edge Neural TTS synthesizer returning Base64 MP3 audio</span>
+                </div>
+                <span id="badge-tts-status" class="font-mono text-[11px] font-bold px-2.5 py-1 bg-[#F4F3EF] border border-[#141413]">READY</span>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <!-- TTS Controls -->
+                <div class="lg:col-span-6 space-y-3.5">
+                  <div class="font-mono text-[11px] font-bold uppercase text-[#141413]">REQUEST BODY (<code class="text-[#FF4F00]">TTSRequest</code>)</div>
+
+                  <div>
+                    <label class="block font-mono text-[11px] font-semibold text-[#4A4945] mb-1">text * (1–1000 chars)</label>
+                    <textarea id="tts-text" rows="2" class="w-full px-3 py-2 bg-white border-2 border-[#141413] font-speech text-sm focus:outline-none focus:border-[#FF4F00]">¡Hola! Bienvenido a la consola interactiva del intérprete TR-01.</textarea>
+                  </div>
+
+                  <div>
+                    <label class="block font-mono text-[11px] font-semibold text-[#4A4945] mb-1">target_lang (Select Neural Voice)</label>
+                    <select id="tts-lang" class="w-full px-2.5 py-2 bg-white border-2 border-[#141413] font-mono text-xs focus:outline-none focus:border-[#FF4F00]">
+                      <option value="es" data-sample="¡Hola! Bienvenido a la consola interactiva del intérprete TR-01." selected>es — es-ES-ElviraNeural (Spanish)</option>
+                      <option value="hi" data-sample="नमस्ते! रीयल-टाइम भाषा अनुवादक स्टूडियो में आपका स्वागत है।">hi — hi-IN-SwaraNeural (Hindi)</option>
+                      <option value="en" data-sample="Hello! Welcome to the TR-01 real-time simultaneous speech interpreter.">en — en-US-AriaNeural (English)</option>
+                      <option value="fr" data-sample="Bonjour ! Bienvenue dans le studio d'interprétation simultanée TR-01.">fr — fr-FR-DeniseNeural (French)</option>
+                      <option value="ja" data-sample="こんにちは！TR-01リアルタイム同時通訳スタジオへようこそ。">ja — ja-JP-NanamiNeural (Japanese)</option>
+                      <option value="de" data-sample="Hallo! Willkommen im Echtzeit-Sprachübersetzer TR-01.">de — de-DE-KatjaNeural (German)</option>
+                      <option value="ar" data-sample="مرحباً بك في استوديو الترجمة الفورية المباشرة.">ar — ar-SA-ZariyahNeural (Arabic)</option>
+                    </select>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                    <button id="btn-exec-tts" type="button" class="btn-retro-primary px-4 py-2 text-xs uppercase tracking-wider">
+                      🔊 Synthesize &amp; Play Audio
+                    </button>
+                    <button id="btn-curl-tts" type="button" class="btn-retro-neutral px-3 py-2 text-xs">
+                      Copy cURL
+                    </button>
+                  </div>
+
+                  <!-- Live Decoded MP3 Audio Deck -->
+                  <div id="tts-player-box" class="hidden p-3 bg-[#F4F3EF] border-2 border-[#141413] space-y-2">
+                    <div class="flex items-center justify-between font-mono text-[11px]">
+                      <span class="font-bold text-[#FF4F00]">● DECODED MP3 STREAM</span>
+                      <span id="tts-voice-meta" class="text-[#141413] font-semibold">es-ES-ElviraNeural</span>
+                    </div>
+                    <audio id="tts-audio-el" controls class="w-full h-9"></audio>
+                  </div>
+                </div>
+
+                <!-- TTS JSON Output -->
+                <div class="lg:col-span-6 flex flex-col">
+                  <div class="flex items-center justify-between font-mono text-[11px] font-bold uppercase mb-1.5">
+                    <span>LIVE SERVER RESPONSE</span>
+                    <span id="meta-tts-time" class="text-[#8C8A84]">Base64 MP3 Stream</span>
+                  </div>
+                  <pre id="out-tts" class="crt-scroll flex-1 min-h-[190px] max-h-[260px] overflow-auto p-3.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] font-mono text-xs leading-relaxed">{
+  "tip": "Click 'Synthesize & Play Audio' to generate and audition an Edge Neural TTS voice stream."
+}</pre>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- ENDPOINTS 3 & 4 SIDE-BY-SIDE: GET /api/health & GET /api/languages -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-7">
+
+            <!-- ENDPOINT 3: GET /api/health -->
+            <article class="retro-window flex flex-col overflow-hidden">
+              <div class="window-titlebar px-4 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="win-dot"></span>
+                  <span class="win-dot"></span>
+                  <span class="font-mono text-[11px] font-bold ml-1">03-system-health.http</span>
+                </div>
+                <span class="font-mono text-[10px] font-bold uppercase px-2 py-0.5 bg-[#FAF9F6] border border-[#141413]">System &amp; Telemetry</span>
+              </div>
+
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="px-2.5 py-1 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] font-mono text-xs font-bold">GET</span>
+                      <code class="font-mono text-base font-bold text-[#141413]">/api/health</code>
+                    </div>
+                    <span id="badge-health-status" class="font-mono text-[11px] font-bold px-2 py-0.5 bg-[#F4F3EF] border border-[#141413]">READY</span>
+                  </div>
+                  <p class="text-xs text-[#4A4945] leading-relaxed">
+                    Returns operational status, LRU cache hit/miss ratios, Faster-Whisper device &amp; quantization status (`int8`/`float16`), and VAD clause-commit thresholds.
+                  </p>
+                  <div class="flex items-center gap-2">
+                    <button id="btn-exec-health" type="button" class="btn-retro-neutral px-3.5 py-1.5 text-xs uppercase">
+                      ▶ Execute GET /api/health
+                    </button>
+                  </div>
+                </div>
+
+                <pre id="out-health" class="crt-scroll h-56 overflow-auto p-3.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] font-mono text-[11px] leading-relaxed">Loading live /api/health telemetry...</pre>
+              </div>
+            </article>
+
+            <!-- ENDPOINT 4: GET /api/languages -->
+            <article class="retro-window flex flex-col overflow-hidden">
+              <div class="window-titlebar px-4 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="win-dot"></span>
+                  <span class="win-dot"></span>
+                  <span class="font-mono text-[11px] font-bold ml-1">04-language-registry.http</span>
+                </div>
+                <span class="font-mono text-[10px] font-bold uppercase px-2 py-0.5 bg-[#FAF9F6] border border-[#141413]">Language Registry</span>
+              </div>
+
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="px-2.5 py-1 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] font-mono text-xs font-bold">GET</span>
+                      <code class="font-mono text-base font-bold text-[#141413]">/api/languages</code>
+                    </div>
+                    <span id="badge-langs-status" class="font-mono text-[11px] font-bold px-2 py-0.5 bg-[#F4F3EF] border border-[#141413]">READY</span>
+                  </div>
+                  <p class="text-xs text-[#4A4945] leading-relaxed">
+                    Lists all 15 supported language definitions (`auto` + 14 target languages) with native endonyms, BCP-47 speech tags, and neural TTS voice IDs.
+                  </p>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button id="btn-exec-langs" type="button" class="btn-retro-neutral px-3.5 py-1.5 text-xs uppercase">
+                      ▶ Execute GET /api/languages
+                    </button>
+                    <button id="btn-toggle-langs-view" type="button" class="px-2.5 py-1.5 bg-[#F4F3EF] border-2 border-[#141413] font-mono text-[11px] font-bold hover:bg-[#FF4F00] hover:text-white transition-colors">
+                      Toggle Table / JSON
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="langs-table-wrap" class="crt-scroll h-56 overflow-auto border-2 border-[#141413] bg-white">
+                  <table class="w-full text-left font-mono text-[11px] border-collapse">
+                    <thead class="bg-[#D8D5CC] border-b-2 border-[#141413] sticky top-0">
+                      <tr>
+                        <th class="py-1.5 px-2.5">CODE</th>
+                        <th class="py-1.5 px-2.5">LANGUAGE</th>
+                        <th class="py-1.5 px-2.5">BCP-47</th>
+                        <th class="py-1.5 px-2.5">NEURAL VOICE</th>
+                      </tr>
+                    </thead>
+                    <tbody id="langs-tbody" class="divide-y divide-[#E5E2D9]"></tbody>
+                  </table>
+                </div>
+
+                <!-- Raw JSON View -->
+                <pre id="out-langs" class="hidden crt-scroll h-56 overflow-auto p-3.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] font-mono text-[11px] leading-relaxed"></pre>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION B: FULL-DUPLEX WEBSOCKET PROTOCOL SPECIFICATION           -->
+      <!-- ================================================================= -->
+      <section id="ws-protocol" class="space-y-6">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-widest text-[#FF4F00]">MISSING FROM STANDARD SWAGGER // FULL-DUPLEX STREAMING</span>
+            <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-[#141413]">WebSocket Protocol (<code class="font-mono text-2xl sm:text-3xl">/ws/translate</code>)</h2>
+          </div>
+          <span class="font-mono text-xs px-2.5 py-1 bg-[#141413] text-[#FF4F00] font-bold">TEXT JSON + BINARY 16KHZ INT16 PCM</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-7">
+          <!-- Client -> Server Frames -->
+          <div class="retro-window overflow-hidden">
+            <div class="window-titlebar px-4 py-2 flex items-center justify-between font-mono text-xs font-bold">
+              <span>CLIENT → SERVER FRAMES (UPLINK ↑)</span>
+              <span class="text-[#FF4F00]">6 FRAME TYPES</span>
+            </div>
+            <div class="p-5 divide-y-2 divide-[#E5E2D9] font-mono text-xs space-y-3.5">
+              <div class="pt-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">1. <code class="text-[#FF4F00]">{"action": "config", ...}</code></span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#F4F3EF] border border-[#141413]">JSON</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  Hot-update session parameters mid-stream: <code>source_lang</code>, <code>target_lang</code>, <code>tts_enabled</code>, <code>engine_mode</code> (<code>"hybrid"</code> | <code>"whisper"</code>), <code>bidirectional</code>, <code>active_speaker</code>, and <code>auto_silence_commit</code>.
+                </p>
+              </div>
+
+              <div class="pt-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">2. <code class="text-[#FF4F00]">{"action": "interim_speech", ...}</code></span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#F4F3EF] border border-[#141413]">JSON</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  Stream cumulative speech tokens (<code>text</code>, <code>is_final</code>, <code>segment_id</code>). Stale partials are automatically cancelled via monotonic <code>sequence_id</code>; 15+ word clauses split on punctuation automatically.
+                </p>
+              </div>
+
+              <div class="pt-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">3. Raw Binary Audio Frame</span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#141413] text-white">ARRAYBUFFER</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  <code>16,000 Hz</code> mono signed 16-bit little-endian PCM (<code>Int16Array</code>, ~2560 samples / 160 ms per frame) fed into the 240 ms pre-roll ring buffer, Silero VAD, and Faster-Whisper ASR.
+                </p>
+              </div>
+
+              <div class="pt-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">4. <code class="text-[#FF4F00]">"flush"</code> / <code class="text-[#FF4F00]">"reset"</code> / <code class="text-[#FF4F00]">"ping"</code></span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#F4F3EF] border border-[#141413]">CONTROL</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  <code>flush</code> immediately locks any pending provisional speech/audio to final; <code>reset</code> clears buffers; <code>ping</code> returns a low-overhead <code>pong</code> RTT timestamp.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Server -> Client Events -->
+          <div class="retro-window overflow-hidden">
+            <div class="window-titlebar px-4 py-2 flex items-center justify-between font-mono text-xs font-bold">
+              <span>SERVER → CLIENT EVENTS (DOWNLINK ↓)</span>
+              <span class="text-emerald-700">ASYNC PUSH</span>
+            </div>
+            <div class="p-5 divide-y-2 divide-[#E5E2D9] font-mono text-xs space-y-3.5">
+              <div class="pt-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">1. <code class="text-[#FF4F00]">status: "partial"</code></span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#F4F3EF] border border-[#141413]">PROVISIONAL</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  In-place while-speaking update containing <code>utterance_id</code>, <code>original_text</code>, <code>translated_text</code>, <code>source_lang</code>, <code>target_lang</code>, <code>speaker</code>, <code>latency_ms</code>, and <code>audio_base64: null</code>.
+                </p>
+              </div>
+
+              <div class="pt-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">2. <code class="text-emerald-700">status: "final"</code></span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#141413] text-emerald-400">COMMITTED + MP3</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  Emitted on <code>&gt;800 ms</code> VAD pause, 15-word punctuation boundary, or <code>is_final: true</code>. Locks the transcript row and attaches synthesized Edge Neural MP3 in <code>audio_base64</code>.
+                </p>
+              </div>
+
+              <div class="pt-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">3. <code class="text-[#FF4F00]">status: "vad"</code> &amp; <code class="text-[#FF4F00]">"engine_status"</code></span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#F4F3EF] border border-[#141413]">TELEMETRY</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  Streams live Silero VAD voice probability / RMS energy for binary PCM streams and reports non-blocking Faster-Whisper model warmup state.
+                </p>
+              </div>
+
+              <div class="pt-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#141413]">4. <code class="text-[#FF4F00]">"config_ack"</code> / <code class="text-[#FF4F00]">"pong"</code> / <code class="text-[#FF4F00]">"reset_ack"</code></span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-[#F4F3EF] border border-[#141413]">ACK</span>
+                </div>
+                <p class="font-speech text-xs text-[#4A4945] mt-1">
+                  Confirms applied session state immediately on handshake or mid-utterance language/mode switching.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION C: INTERACTIVE LIVE WEBSOCKET PACKET DEBUGGER             -->
+      <!-- ================================================================= -->
+      <section id="ws-debugger" class="space-y-4">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-widest text-[#FF4F00]">REAL-TIME PACKET INSPECTOR</span>
+            <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-[#141413]">Live WebSocket Console</h2>
+          </div>
+          <div class="flex items-center gap-2 font-mono text-xs">
+            <span id="ws-conn-pill" class="px-2.5 py-1 bg-[#8C8A84] text-white font-bold border border-[#141413]">DISCONNECTED</span>
+            <button id="btn-ws-toggle" type="button" class="btn-retro-neutral px-3 py-1 text-xs">Connect WS</button>
+          </div>
+        </div>
+
+        <div class="retro-window overflow-hidden">
+          <div class="window-titlebar px-4 py-2 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="win-dot bg-[#FF4F00]"></span>
+              <span class="win-dot"></span>
+              <span id="ws-title-url" class="font-bold ml-1">ws://127.0.0.1:8000/ws/translate</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btn-ws-sequence" type="button" class="px-2.5 py-0.5 bg-[#FF4F00] text-white border border-[#141413] text-[11px] font-bold hover:bg-[#141413]">
+                ▶ Auto-Stream 4-Frame Demo
+              </button>
+              <button id="btn-ws-clear" type="button" class="px-2 py-0.5 bg-[#FAF9F6] border border-[#141413] text-[11px] font-bold hover:bg-[#141413] hover:text-white">
+                Clear Log
+              </button>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Left Frame Composer -->
+            <div class="lg:col-span-5 space-y-3">
+              <div class="font-mono text-[11px] font-bold uppercase text-[#141413]">LOAD FRAME PRESET:</div>
+              <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                <button type="button" data-preset="config" class="ws-preset-btn px-2.5 py-1 bg-[#F4F3EF] border border-[#141413] font-bold hover:bg-[#FF4F00] hover:text-white">1. config</button>
+                <button type="button" data-preset="partial" class="ws-preset-btn px-2.5 py-1 bg-[#F4F3EF] border border-[#141413] font-bold hover:bg-[#FF4F00] hover:text-white">2. partial</button>
+                <button type="button" data-preset="final" class="ws-preset-btn px-2.5 py-1 bg-[#F4F3EF] border border-[#141413] font-bold hover:bg-[#FF4F00] hover:text-white">3. final + TTS</button>
+                <button type="button" data-preset="flush" class="ws-preset-btn px-2.5 py-1 bg-[#F4F3EF] border border-[#141413] font-bold hover:bg-[#FF4F00] hover:text-white">4. flush</button>
+                <button type="button" data-preset="ping" class="ws-preset-btn px-2.5 py-1 bg-[#F4F3EF] border border-[#141413] font-bold hover:bg-[#FF4F00] hover:text-white">5. ping</button>
+              </div>
+
+              <textarea id="ws-payload-editor" rows="8" class="w-full p-3 bg-white border-2 border-[#141413] font-mono text-xs leading-relaxed focus:outline-none focus:border-[#FF4F00]">{
+  "action": "config",
+  "source_lang": "auto",
+  "target_lang": "es",
+  "tts_enabled": true,
+  "bidirectional": false,
+  "auto_silence_commit": false
+}</textarea>
+
+              <button id="btn-ws-send" type="button" class="btn-retro-primary w-full py-2.5 text-xs uppercase tracking-wider">
+                ⚡ Send JSON Frame Over WebSocket
+              </button>
+            </div>
+
+            <!-- Right CRT Packet Stream Log -->
+            <div class="lg:col-span-7 flex flex-col">
+              <div class="flex items-center justify-between font-mono text-[11px] font-bold uppercase mb-1.5">
+                <span>LIVE TX / RX PACKET STREAM</span>
+                <span id="ws-packet-count" class="text-[#8C8A84]">0 frames</span>
+              </div>
+              <div id="ws-log" class="crt-scroll flex-1 min-h-[260px] max-h-[340px] overflow-auto p-3.5 bg-[#141413] text-[#F4F3EF] border-2 border-[#141413] font-mono text-xs space-y-2.5"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION D: OAS 3.1 DATA SCHEMAS & CODE INTEGRATION SNIPPETS       -->
+      <!-- ================================================================= -->
+      <section id="schemas" class="space-y-6">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-widest text-[#FF4F00]">PYDANTIC v2 // OAS 3.1 MODELS</span>
+            <h2 class="font-speech text-3xl sm:text-4xl font-bold tracking-tight text-[#141413]">Data Schemas</h2>
+          </div>
+          <a href="/openapi.json" target="_blank" rel="noopener" class="font-mono text-xs font-bold underline decoration-[#FF4F00] decoration-2 underline-offset-4 hover:text-[#FF4F00]">
+            View Raw OpenAPI 3.1 Schema (/openapi.json) ↗
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+          <!-- Schema 1 -->
+          <div class="retro-window p-5 space-y-3">
+            <div class="flex items-center justify-between border-b-2 border-[#141413] pb-2">
+              <span class="font-bold text-sm">TranslateRequest / Response</span>
+              <span class="px-1.5 py-0.5 bg-[#FF4F00] text-white text-[10px] font-bold">REST</span>
+            </div>
+            <ul class="space-y-1.5 text-[11px] text-[#2B2A28]">
+              <li><strong>text</strong>: <span class="text-[#8C8A84]">string (1..2000)</span></li>
+              <li><strong>source_lang</strong>: <span class="text-[#8C8A84]">string = "auto"</span></li>
+              <li><strong>target_lang</strong>: <span class="text-[#8C8A84]">string = "es"</span></li>
+              <li><strong>bidirectional</strong>: <span class="text-[#8C8A84]">bool = false</span></li>
+              <li class="pt-1 border-t border-[#E5E2D9]"><strong>translated_text</strong>: <span class="text-emerald-700">string</span></li>
+              <li><strong>cached</strong>: <span class="text-emerald-700">bool (0ms LRU hit)</span></li>
+              <li><strong>latency_ms</strong>: <span class="text-emerald-700">integer</span></li>
+              <li><strong>speaker</strong>: <span class="text-emerald-700">"A" | "B"</span></li>
+            </ul>
+          </div>
+
+          <!-- Schema 2 -->
+          <div class="retro-window p-5 space-y-3">
+            <div class="flex items-center justify-between border-b-2 border-[#141413] pb-2">
+              <span class="font-bold text-sm">TTSRequest / TTSResponse</span>
+              <span class="px-1.5 py-0.5 bg-[#FF4F00] text-white text-[10px] font-bold">AUDIO</span>
+            </div>
+            <ul class="space-y-1.5 text-[11px] text-[#2B2A28]">
+              <li><strong>text</strong>: <span class="text-[#8C8A84]">string (1..1000)</span></li>
+              <li><strong>target_lang</strong>: <span class="text-[#8C8A84]">string = "es"</span></li>
+              <li class="pt-1 border-t border-[#E5E2D9]"><strong>voice</strong>: <span class="text-emerald-700">string (Edge Neural ID)</span></li>
+              <li><strong>audio_base64</strong>: <span class="text-emerald-700">string | null (MP3)</span></li>
+              <li class="pt-1 text-[10px] text-[#8C8A84] font-speech">
+                Decode via <code>data:audio/mpeg;base64,${audio_base64}</code> or Web Audio <code>decodeAudioData</code>.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Schema 3 -->
+          <div class="retro-window p-5 space-y-3">
+            <div class="flex items-center justify-between border-b-2 border-[#141413] pb-2">
+              <span class="font-bold text-sm">WSTranslationFrame</span>
+              <span class="px-1.5 py-0.5 bg-[#141413] text-white text-[10px] font-bold">WS EVENT</span>
+            </div>
+            <ul class="space-y-1.5 text-[11px] text-[#2B2A28]">
+              <li><strong>status</strong>: <span class="text-[#FF4F00]">"partial" | "final"</span></li>
+              <li><strong>utterance_id</strong>: <span class="text-[#8C8A84]">string ("utt_101")</span></li>
+              <li><strong>original_text</strong>: <span class="text-[#8C8A84]">string</span></li>
+              <li><strong>translated_text</strong>: <span class="text-[#8C8A84]">string</span></li>
+              <li><strong>source_lang / target_lang</strong>: <span class="text-[#8C8A84]">string</span></li>
+              <li><strong>audio_base64</strong>: <span class="text-emerald-700">string | null (final)</span></li>
+              <li><strong>latency_ms</strong>: <span class="text-[#8C8A84]">integer</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION E: COPY-READY CLIENT INTEGRATION SNIPPETS                 -->
+      <!-- ================================================================= -->
+      <section id="snippets" class="retro-window overflow-hidden">
+        <div class="window-titlebar px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5">
+            <span class="win-dot"></span>
+            <span class="win-dot"></span>
+            <span class="font-mono text-xs font-bold ml-1">quickstart-integration-examples</span>
+          </div>
+          <div class="flex items-center gap-1.5 font-mono text-[11px]">
+            <button type="button" data-tab="js" class="snippet-tab active px-2.5 py-1 bg-[#FAF9F6] border border-[#141413] font-bold">JavaScript WS</button>
+            <button type="button" data-tab="py" class="snippet-tab px-2.5 py-1 bg-[#FAF9F6] border border-[#141413] font-bold">Python Async</button>
+            <button type="button" data-tab="curl" class="snippet-tab px-2.5 py-1 bg-[#FAF9F6] border border-[#141413] font-bold">REST cURL</button>
+          </div>
+        </div>
+
+        <div class="p-5 bg-[#141413] text-[#F4F3EF] relative">
+          <button id="btn-copy-snippet" type="button" class="absolute top-4 right-4 px-3 py-1 bg-[#FF4F00] text-white border border-white/20 font-mono text-[11px] font-bold hover:bg-white hover:text-[#141413]">
+            COPY SNIPPET
+          </button>
+          <pre id="snippet-code" class="crt-scroll overflow-auto font-mono text-xs leading-relaxed pr-24"></pre>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- 5. COHESIVE HARDWARE FOOTER                                           -->
+  <!-- ===================================================================== -->
+  <footer class="bg-[#D8D5CC] border-t-2 border-[#141413]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 py-6 flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-[#141413]">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="px-2 py-0.5 bg-[#141413] text-[#FF4F00] font-bold">TR-01</span>
+        <span class="font-bold">INTERACTIVE API &amp; STREAMING PROTOCOL MANUAL</span>
+        <span class="hidden sm:inline text-[#8C8A84]">•</span>
+        <a href="/docs/swagger" class="underline hover:text-[#FF4F00]">OpenAPI Swagger View</a>
+        <span class="text-[#8C8A84]">•</span>
+        <a href="/openapi.json" target="_blank" rel="noopener" class="underline hover:text-[#FF4F00]">openapi.json</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="font-bold hover:text-[#FF4F00]">← Landing Page</a>
+        <a href="/app" class="btn-retro-primary px-4 py-1.5 text-xs uppercase">Launch Studio →</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- INTERACTIVE DOCUMENTATION ENGINE SCRIPT                               -->
+  <!-- ===================================================================== -->
+  <script>
+    (() => {
+      "use strict";
+
+      const originHttp = window.location.origin;
+      const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const originWs = `${wsProto}//${window.location.host}/ws/translate`;
+
+      document.getElementById("base-http-url").textContent = originHttp;
+      document.getElementById("base-ws-url").textContent = originWs;
+      document.getElementById("ws-title-url").textContent = originWs;
+
+      // Copy URL buttons
+      document.querySelectorAll(".copy-url-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.getAttribute("data-copy-target");
+          const val = document.getElementById(targetId)?.textContent || "";
+          navigator.clipboard?.writeText(val);
+          const prev = btn.textContent;
+          btn.textContent = "COPIED ✓";
+          setTimeout(() => { btn.textContent = prev; }, 1200);
+        });
+      });
+
+      function setStatusBadge(el, ok, statusCode, ms) {
+        el.textContent = `${statusCode} · ${ms} MS`;
+        el.className = ok
+          ? "font-mono text-[11px] font-bold px-2.5 py-1 bg-emerald-600 text-white border border-[#141413]"
+          : "font-mono text-[11px] font-bold px-2.5 py-1 bg-red-600 text-white border border-[#141413]";
+      }
+
+      // 1. Live Health & Telemetry Loader
+      async function executeHealth() {
+        const outEl = document.getElementById("out-health");
+        const badge = document.getElementById("badge-health-status");
+        const t0 = performance.now();
+        try {
+          const res = await fetch("/api/health");
+          const ms = Math.round(performance.now() - t0);
+          const data = await res.json();
+          setStatusBadge(badge, res.ok, `${res.status} OK`, ms);
+          outEl.textContent = JSON.stringify(data, null, 2);
+
+          // Update top telemetry cards
+          document.getElementById("stat-health").textContent = `${String(data.status).toUpperCase()} (${ms} ms)`;
+          document.getElementById("stat-version").textContent = `Version ${data.version} · OAS 3.1`;
+          document.getElementById("nav-health-text").textContent = `ONLINE · v${data.version}`;
+          if (data.translator) {
+            document.getElementById("stat-mt").textContent = data.translator.provider;
+            document.getElementById("stat-cache").textContent =
+              `${data.translator.cache_hits} hits / ${data.translator.cache_size} cached`;
+          }
+          if (data.whisper) {
+            document.getElementById("stat-whisper").textContent =
+              `${data.whisper.model_size} (${data.whisper.device} · ${data.whisper.compute_type})`;
+            document.getElementById("stat-whisper-state").textContent =
+              data.whisper.loaded ? "Warm in RAM ✓" : "Lazy-load on demand";
+          }
+          if (data.config) {
+            document.getElementById("stat-timing").textContent =
+              `${data.config.translation_debounce_ms}ms Debounce`;
+            document.getElementById("stat-vad").textContent =
+              `${data.config.silence_threshold_ms}ms VAD Lock · ${data.config.max_clause_words}w Split`;
+          }
+        } catch (err) {
+          setStatusBadge(badge, false, "ERR", 0);
+          outEl.textContent = String(err);
+        }
+      }
+
+      // 2. Live Languages Registry Runner
+      let langsJsonView = false;
+      async function executeLanguages() {
+        const outEl = document.getElementById("out-langs");
+        const tbody = document.getElementById("langs-tbody");
+        const badge = document.getElementById("badge-langs-status");
+        const t0 = performance.now();
+        try {
+          const res = await fetch("/api/languages");
+          const ms = Math.round(performance.now() - t0);
+          const data = await res.json();
+          setStatusBadge(badge, res.ok, `${res.status} OK`, ms);
+          outEl.textContent = JSON.stringify(data, null, 2);
+
+          tbody.innerHTML = "";
+          (data.languages || []).forEach((item) => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-[#F4F3EF]";
+            tr.innerHTML = `
+              <td class="py-1.5 px-2.5 font-bold text-[#FF4F00]">${item.code}</td>
+              <td class="py-1.5 px-2.5">${item.name} <span class="text-[#8C8A84]">(${item.native_name})</span></td>
+              <td class="py-1.5 px-2.5">${item.bcp47}</td>
+              <td class="py-1.5 px-2.5 text-[#2B2A28]">${item.tts_voice}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          setStatusBadge(badge, false, "ERR", 0);
+          outEl.textContent = String(err);
+        }
+      }
+
+      document.getElementById("btn-toggle-langs-view").addEventListener("click", () => {
+        langsJsonView = !langsJsonView;
+        document.getElementById("langs-table-wrap").classList.toggle("hidden", langsJsonView);
+        document.getElementById("out-langs").classList.toggle("hidden", !langsJsonView);
+      });
+
+      // 3. Live POST /api/translate Runner
+      async function executeTranslate() {
+        const btn = document.getElementById("btn-exec-translate");
+        const outEl = document.getElementById("out-translate");
+        const badge = document.getElementById("badge-translate-status");
+        const metaEl = document.getElementById("meta-translate-time");
+        const payload = {
+          text: document.getElementById("tr-text").value,
+          source_lang: document.getElementById("tr-src").value,
+          target_lang: document.getElementById("tr-tgt").value,
+          bidirectional: document.getElementById("tr-bidir").checked,
+        };
+
+        btn.disabled = true;
+        const t0 = performance.now();
+        try {
+          const res = await fetch("/api/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const ms = Math.round(performance.now() - t0);
+          const data = await res.json();
+          setStatusBadge(badge, res.ok, `${res.status} OK`, ms);
+          metaEl.textContent = data.cached
+            ? `⚡ 0ms LRU CACHE HIT (${ms}ms HTTP RTT)`
+            : `Engine: ${data.latency_ms}ms (${ms}ms HTTP RTT)`;
+          metaEl.className = data.cached ? "text-[#FF4F00] font-bold" : "text-[#4A4945]";
+          outEl.textContent = JSON.stringify(data, null, 2);
+          executeHealth();
+        } catch (err) {
+          setStatusBadge(badge, false, "ERR", 0);
+          outEl.textContent = String(err);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      document.getElementById("btn-curl-translate").addEventListener("click", (ev) => {
+        const payload = {
+          text: document.getElementById("tr-text").value,
+          source_lang: document.getElementById("tr-src").value,
+          target_lang: document.getElementById("tr-tgt").value,
+          bidirectional: document.getElementById("tr-bidir").checked,
+        };
+        const cmd = `curl -X POST "${originHttp}/api/translate" -H "Content-Type: application/json" -d '${JSON.stringify(payload)}'`;
+        navigator.clipboard?.writeText(cmd);
+        const btn = ev.currentTarget;
+        btn.textContent = "Copied cURL ✓";
+        setTimeout(() => { btn.textContent = "Copy cURL"; }, 1300);
+      });
+
+      // 4. Live POST /api/tts Runner + Audio Player
+      const ttsLangSelect = document.getElementById("tts-lang");
+      ttsLangSelect.addEventListener("change", () => {
+        const opt = ttsLangSelect.options[ttsLangSelect.selectedIndex];
+        const sample = opt?.getAttribute("data-sample");
+        if (sample) {
+          document.getElementById("tts-text").value = sample;
+        }
+      });
+
+      async function executeTTS() {
+        const btn = document.getElementById("btn-exec-tts");
+        const outEl = document.getElementById("out-tts");
+        const badge = document.getElementById("badge-tts-status");
+        const metaEl = document.getElementById("meta-tts-time");
+        const playerBox = document.getElementById("tts-player-box");
+        const audioEl = document.getElementById("tts-audio-el");
+        const voiceMeta = document.getElementById("tts-voice-meta");
+
+        const payload = {
+          text: document.getElementById("tts-text").value,
+          target_lang: ttsLangSelect.value,
+        };
+
+        btn.disabled = true;
+        outEl.textContent = "Synthesizing Edge Neural MP3 stream...";
+        const t0 = performance.now();
+        try {
+          const res = await fetch("/api/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const ms = Math.round(performance.now() - t0);
+          const data = await res.json();
+          setStatusBadge(badge, res.ok, `${res.status} OK`, ms);
+
+          if (data.audio_base64) {
+            const approxKb = ((data.audio_base64.length * 3) / 4 / 1024).toFixed(1);
+            metaEl.textContent = `${approxKb} KB MP3 · ${ms} ms`;
+            voiceMeta.textContent = `${data.voice || data.target_lang} (${approxKb} KB)`;
+            audioEl.src = `data:audio/mpeg;base64,${data.audio_base64}`;
+            playerBox.classList.remove("hidden");
+            audioEl.play().catch(() => {});
+
+            const displayCopy = {
+              ...data,
+              audio_base64: `${data.audio_base64.slice(0, 72)}... [${data.audio_base64.length} base64 chars — decoded in player]`,
+            };
+            outEl.textContent = JSON.stringify(displayCopy, null, 2);
+          } else {
+            outEl.textContent = JSON.stringify(data, null, 2);
+          }
+        } catch (err) {
+          setStatusBadge(badge, false, "ERR", 0);
+          outEl.textContent = String(err);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      document.getElementById("btn-curl-tts").addEventListener("click", (ev) => {
+        const payload = {
+          text: document.getElementById("tts-text").value,
+          target_lang: ttsLangSelect.value,
+        };
+        const cmd = `curl -X POST "${originHttp}/api/tts" -H "Content-Type: application/json" -d '${JSON.stringify(payload)}'`;
+        navigator.clipboard?.writeText(cmd);
+        const btn = ev.currentTarget;
+        btn.textContent = "Copied cURL ✓";
+        setTimeout(() => { btn.textContent = "Copy cURL"; }, 1300);
+      });
+
+      document.getElementById("btn-exec-health").addEventListener("click", executeHealth);
+      document.getElementById("refresh-telemetry-btn").addEventListener("click", executeHealth);
+      document.getElementById("btn-exec-langs").addEventListener("click", executeLanguages);
+      document.getElementById("btn-exec-translate").addEventListener("click", executeTranslate);
+      document.getElementById("btn-exec-tts").addEventListener("click", executeTTS);
+
+      // 5. Live WebSocket Packet Console
+      let ws = null;
+      let packetCount = 0;
+      const wsLog = document.getElementById("ws-log");
+      const wsPill = document.getElementById("ws-conn-pill");
+      const wsToggleBtn = document.getElementById("btn-ws-toggle");
+      const wsEditor = document.getElementById("ws-payload-editor");
+      const wsCountEl = document.getElementById("ws-packet-count");
+
+      const WS_PRESETS = {
+        config: {
+          action: "config",
+          source_lang: "auto",
+          target_lang: "es",
+          tts_enabled: true,
+          bidirectional: false,
+          auto_silence_commit: false,
+        },
+        partial: {
+          action: "interim_speech",
+          text: "We are testing the simultaneous WebSocket",
+          is_final: false,
+          segment_id: "docs_seg_1",
+        },
+        final: {
+          action: "interim_speech",
+          text: "We are testing the simultaneous WebSocket protocol live.",
+          is_final: true,
+          segment_id: "docs_seg_1",
+        },
+        flush: { action: "flush" },
+        ping: { action: "ping", ts: Date.now() / 1000 },
+      };
+
+      function appendWsLog(dir, payloadObj) {
+        packetCount += 1;
+        wsCountEl.textContent = `${packetCount} frames`;
+        const row = document.createElement("div");
+        row.className = "p-2.5 border border-[#2F2E2B] bg-[#1C1C1A]";
+
+        const now = new Date().toLocaleTimeString("en-US", { hour12: false });
+        const isTx = dir === "TX";
+        const badgeHtml = isTx
+          ? `<span class="text-[#FF4F00] font-bold">TX ↑ CLIENT</span>`
+          : `<span class="text-emerald-400 font-bold">RX ↓ SERVER</span>`;
+
+        let audioBtnHtml = "";
+        let displayPayload = payloadObj;
+        if (!isTx && payloadObj && typeof payloadObj === "object" && payloadObj.audio_base64) {
+          const b64 = payloadObj.audio_base64;
+          displayPayload = {
+            ...payloadObj,
+            audio_base64: `${b64.slice(0, 48)}... [${b64.length} chars]`,
+          };
+          audioBtnHtml = `<button type="button" class="play-ws-audio ml-2 px-2 py-0.5 bg-[#FF4F00] text-white text-[10px] font-bold">🔊 Play MP3</button>`;
+        }
+
+        const header = document.createElement("div");
+        header.className = "flex items-center justify-between text-[10px] text-[#8C8A84] mb-1";
+        header.innerHTML = `<div>${badgeHtml}${audioBtnHtml}</div><span>${now}</span>`;
+
+        const pre = document.createElement("pre");
+        pre.className = "text-[11px] text-[#F4F3EF] whitespace-pre-wrap break-all";
+        pre.textContent = typeof displayPayload === "string"
+          ? displayPayload
+          : JSON.stringify(displayPayload, null, 2);
+
+        row.appendChild(header);
+        row.appendChild(pre);
+
+        if (audioBtnHtml && payloadObj.audio_base64) {
+          row.querySelector(".play-ws-audio")?.addEventListener("click", () => {
+            const audio = new Audio(`data:audio/mpeg;base64,${payloadObj.audio_base64}`);
+            audio.play();
+          });
+        }
+
+        wsLog.appendChild(row);
+        wsLog.scrollTop = wsLog.scrollHeight;
+      }
+
+      function connectDocsWs() {
+        if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+          return;
+        }
+        ws = new WebSocket(originWs);
+        wsPill.textContent = "CONNECTING...";
+        wsPill.className = "px-2.5 py-1 bg-[#D8D5CC] text-[#141413] font-bold border border-[#141413]";
+
+        ws.onopen = () => {
+          wsPill.textContent = "WS ONLINE";
+          wsPill.className = "px-2.5 py-1 bg-emerald-600 text-white font-bold border border-[#141413]";
+          wsToggleBtn.textContent = "Disconnect";
+          appendWsLog("RX", { info: `Connected to ${originWs}` });
+        };
+
+        ws.onmessage = (ev) => {
+          try {
+            appendWsLog("RX", JSON.parse(ev.data));
+          } catch {
+            appendWsLog("RX", ev.data);
+          }
+        };
+
+        ws.onclose = () => {
+          wsPill.textContent = "DISCONNECTED";
+          wsPill.className = "px-2.5 py-1 bg-[#8C8A84] text-white font-bold border border-[#141413]";
+          wsToggleBtn.textContent = "Connect WS";
+        };
+      }
+
+      wsToggleBtn.addEventListener("click", () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        } else {
+          connectDocsWs();
+        }
+      });
+
+      document.querySelectorAll(".ws-preset-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const key = btn.getAttribute("data-preset");
+          const preset = WS_PRESETS[key];
+          if (preset) {
+            if (key === "ping") preset.ts = Number((Date.now() / 1000).toFixed(3));
+            wsEditor.value = JSON.stringify(preset, null, 2);
+          }
+        });
+      });
+
+      document.getElementById("btn-ws-send").addEventListener("click", async () => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          connectDocsWs();
+          await new Promise((r) => setTimeout(r, 260));
+        }
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+        try {
+          const parsed = JSON.parse(wsEditor.value);
+          ws.send(JSON.stringify(parsed));
+          appendWsLog("TX", parsed);
+        } catch {
+          ws.send(wsEditor.value);
+          appendWsLog("TX", wsEditor.value);
+        }
+      });
+
+      document.getElementById("btn-ws-sequence").addEventListener("click", async () => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          connectDocsWs();
+          await new Promise((r) => setTimeout(r, 280));
+        }
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+        const seg = `demo_${Date.now()}`;
+        const frames = [
+          { action: "config", source_lang: "en", target_lang: "es", tts_enabled: true, auto_silence_commit: false },
+          { action: "interim_speech", text: "Hello welcome to", is_final: false, segment_id: seg },
+          { action: "interim_speech", text: "Hello welcome to our real-time", is_final: false, segment_id: seg },
+          { action: "interim_speech", text: "Hello welcome to our real-time translator!", is_final: true, segment_id: seg },
+        ];
+        for (const frame of frames) {
+          ws.send(JSON.stringify(frame));
+          appendWsLog("TX", frame);
+          await new Promise((r) => setTimeout(r, 260));
+        }
+      });
+
+      document.getElementById("btn-ws-clear").addEventListener("click", () => {
+        wsLog.innerHTML = "";
+        packetCount = 0;
+        wsCountEl.textContent = "0 frames";
+      });
+
+      // 6. Code Integration Snippets Tabs
+      const SNIPPETS = {
+        js: `// Full-Duplex Simultaneous Speech WebSocket Client
+const ws = new WebSocket("${originWs}");
+
+ws.onopen = () => {
+  ws.send(JSON.stringify({
+    action: "config",
+    source_lang: "auto",
+    target_lang: "es",
+    tts_enabled: true
+  }));
+
+  // Stream while-speaking partial tokens -> locks automatically on is_final: true
+  ws.send(JSON.stringify({
+    action: "interim_speech",
+    text: "Translating live while I am still speaking",
+    is_final: false,
+    segment_id: "seg_01"
+  }));
+};
+
+ws.onmessage = (event) => {
+  const frame = JSON.parse(event.data);
+  if (frame.status === "partial") {
+    console.log("[PROVISIONAL]", frame.translated_text);
+  } else if (frame.status === "final") {
+    console.log("[LOCKED]", frame.translated_text, frame.latency_ms + "ms");
+    if (frame.audio_base64) {
+      new Audio("data:audio/mpeg;base64," + frame.audio_base64).play();
+    }
+  }
+};`,
+        py: `import asyncio, json, websockets
+
+async def stream_translation():
+    async with websockets.connect("${originWs}") as ws:
+        await ws.send(json.dumps({
+            "action": "config",
+            "source_lang": "en",
+            "target_lang": "hi",
+            "tts_enabled": True,
+        }))
+        print("ACK:", await ws.recv())
+
+        await ws.send(json.dumps({
+            "action": "interim_speech",
+            "text": "Simultaneous translation works without waiting for pauses.",
+            "is_final": True,
+            "segment_id": "py_1",
+        }))
+        print("FINAL:", await ws.recv())
+
+asyncio.run(stream_translation())`,
+        curl: `# 1. Instant LRU-Cached Text Translation
+curl -X POST "${originHttp}/api/translate" \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "Speak naturally without stopping.", "source_lang": "auto", "target_lang": "es"}'
+
+# 2. Synthesize Edge Neural TTS Audio (Base64 MP3)
+curl -X POST "${originHttp}/api/tts" \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "Habla con naturalidad sin detenerte.", "target_lang": "es"}'
+
+# 3. Inspect System Telemetry & Cache Hit Stats
+curl "${originHttp}/api/health"`,
+      };
+
+      const snippetCodeEl = document.getElementById("snippet-code");
+      snippetCodeEl.textContent = SNIPPETS.js;
+
+      document.querySelectorAll(".snippet-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const key = tab.getAttribute("data-tab");
+          document.querySelectorAll(".snippet-tab").forEach((t) => t.classList.toggle("active", t === tab));
+          snippetCodeEl.textContent = SNIPPETS[key] || "";
+        });
+      });
+
+      document.getElementById("btn-copy-snippet").addEventListener("click", (ev) => {
+        navigator.clipboard?.writeText(snippetCodeEl.textContent || "");
+        const btn = ev.currentTarget;
+        btn.textContent = "COPIED ✓";
+        setTimeout(() => { btn.textContent = "COPY SNIPPET"; }, 1300);
+      });
+
+      // Auto-initialize live telemetry, language table & WebSocket console on page open
+      executeHealth();
+      executeLanguages();
+      connectDocsWs();
+    })();
+  </script>
+</body>
+</html>
