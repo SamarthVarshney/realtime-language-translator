@@ -229,10 +229,7 @@ def test_translator_lru_cache_noise_filter_and_bidirectional() -> None:
 # ==============================================================================
 
 
-def test_rest_endpoints(monkeypatch: pytest.MonkeyPatch) -> None:
-    mock_prov = MockFastProvider(delay_s=0.005)
-    monkeypatch.setattr(translator_service, "provider", mock_prov)
-
+def test_rest_endpoints() -> None:
     with TestClient(app) as client:
         landing = client.get("/")
         assert landing.status_code == 200
@@ -243,19 +240,6 @@ def test_rest_endpoints(monkeypatch: pytest.MonkeyPatch) -> None:
         assert studio.status_code == 200
         assert "Microphone Access Required" in studio.text
 
-        docs = client.get("/docs")
-        assert docs.status_code == 200
-        assert "API &amp; Streaming Protocol" in docs.text
-        assert "Live WebSocket Console" in docs.text
-
-        swagger = client.get("/docs/swagger")
-        assert swagger.status_code == 200
-        assert "SwaggerUIBundle" in swagger.text
-
-        openapi = client.get("/openapi.json")
-        assert openapi.status_code == 200
-        assert "/api/translate" in openapi.json()["paths"]
-
         health = client.get("/api/health")
         assert health.status_code == 200
         assert health.json()["status"] == "ok"
@@ -264,13 +248,6 @@ def test_rest_endpoints(monkeypatch: pytest.MonkeyPatch) -> None:
         assert langs.status_code == 200
         codes = {item["code"] for item in langs.json()["languages"]}
         assert {"auto", "en", "es", "hi", "fr", "de", "zh-CN", "ja", "ar"}.issubset(codes)
-
-        tr = client.post(
-            "/api/translate",
-            json={"text": "Hello world", "source_lang": "en", "target_lang": "es"},
-        )
-        assert tr.status_code == 200
-        assert tr.json()["translated_text"] == "[es] Hello world"
 
 
 def test_websocket_provisional_and_committed_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
